@@ -25,6 +25,77 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "collaboration", label: "Cross-Dept",         icon: Network  },
 ];
 
+function DeptTree({ results }: { results: Results }) {
+  const [open, setOpen] = useState(false);
+  const [openDepts, setOpenDepts] = useState<Record<string, boolean>>({});
+
+  const byDept = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    results.resource.forEach((e) => {
+      const fn = e.function || "Unassigned";
+      if (!map[fn]) map[fn] = [];
+      map[fn].push(e.employee_name);
+    });
+    return map;
+  }, [results]);
+
+  const totalEmps = results.resource.length;
+  const deptCount = Object.keys(byDept).length;
+
+  return (
+    <div className="mb-6 rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+      >
+        <Folder className="size-4 shrink-0 text-amber-500" />
+        <span className="font-heading text-xs font-semibold text-slate-700">
+          Submission Structure
+        </span>
+        <span className="ml-2 text-xs text-slate-400">
+          {totalEmps} employee{totalEmps !== 1 ? "s" : ""} across {deptCount} department{deptCount !== 1 ? "s" : ""}
+        </span>
+        <ChevronDown className={`ml-auto size-4 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-100 px-4 py-3">
+          <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.entries(byDept).map(([dept, emps]) => (
+              <div key={dept}>
+                <button
+                  onClick={() => setOpenDepts((p) => ({ ...p, [dept]: !p[dept] }))}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 transition-colors"
+                >
+                  <ChevronRight className={`size-3 shrink-0 text-slate-400 transition-transform duration-200 ${openDepts[dept] ? "rotate-90" : ""}`} />
+                  {openDepts[dept]
+                    ? <FolderOpen className="size-3.5 shrink-0 text-amber-500" />
+                    : <Folder className="size-3.5 shrink-0 text-amber-500" />
+                  }
+                  <span className="flex-1 truncate text-xs font-medium text-slate-700">{dept}</span>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 font-heading text-[10px] font-bold text-slate-600">
+                    {emps.length}
+                  </span>
+                </button>
+                {openDepts[dept] && (
+                  <ul className="ml-7 mt-0.5 space-y-0.5">
+                    {emps.map((name, i) => (
+                      <li key={i} className="flex items-center gap-2 px-2 py-0.5 text-xs text-slate-500">
+                        <User className="size-3 shrink-0 text-slate-300" />
+                        {name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ResultsPage() {
   const { run_id } = useParams<{ run_id: string }>();
   const router     = useRouter();
@@ -110,6 +181,9 @@ export default function ResultsPage() {
           <DepartmentFilter departments={departments} selected={dept} onChange={setDept} />
         </div>
       </div>
+
+      {/* Department folder tree */}
+      <DeptTree results={results} />
 
       {/* KPI row */}
       <KPICards results={filteredResults} filteredDept={dept} />
