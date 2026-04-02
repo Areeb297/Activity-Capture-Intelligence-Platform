@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { History } from "lucide-react";
 import "./globals.css";
 
@@ -48,6 +49,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
         <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+
+        <footer className="border-t border-slate-200 bg-white mt-12">
+          <div className="mx-auto max-w-7xl px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Powered by</span>
+              <Image
+                src="/Onasilogo.png"
+                alt="Onasi"
+                width={72}
+                height={24}
+                className="object-contain"
+              />
+            </div>
+            <p className="text-xs text-slate-400">© 2026 Onasi-CloudTech. All Rights Reserved.</p>
+          </div>
+        </footer>
       </body>
     </html>
   );

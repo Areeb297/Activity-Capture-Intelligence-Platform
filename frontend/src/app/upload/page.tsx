@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Info, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -12,19 +12,24 @@ type Stage = "idle" | "uploading" | "starting" | "error";
 
 export default function UploadPage() {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [files, setFiles]   = useState<File[]>([]);
   const [stage, setStage]   = useState<Stage>("idle");
   const [error, setError]   = useState<string | null>(null);
 
   const addFiles = useCallback((incoming: File[]) => {
-    setFiles((prev) => {
-      const existing = new Set(prev.map((f) => f.name));
-      return [...prev, ...incoming.filter((f) => !existing.has(f.name))];
+    startTransition(() => {
+      setFiles((prev) => {
+        const existing = new Set(prev.map((f) => f.name));
+        return [...prev, ...incoming.filter((f) => !existing.has(f.name))];
+      });
     });
   }, []);
 
   const removeFile = useCallback((i: number) => {
-    setFiles((prev) => prev.filter((_, idx) => idx !== i));
+    startTransition(() => {
+      setFiles((prev) => prev.filter((_, idx) => idx !== i));
+    });
   }, []);
 
   const handleSubmit = async () => {
