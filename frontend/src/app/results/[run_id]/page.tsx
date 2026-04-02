@@ -12,7 +12,7 @@ import ResourcePanel from "@/components/dashboard/ResourcePanel";
 import NarrativeSummary from "@/components/dashboard/NarrativeSummary";
 import ChartsPanel from "@/components/dashboard/ChartsPanel";
 import CollaborationPanel from "@/components/dashboard/CollaborationPanel";
-import { ArrowLeft, Copy, Zap, Users, FileText, BarChart2, Network } from "lucide-react";
+import { ArrowLeft, Copy, Zap, Users, FileText, BarChart2, Network, Folder, FolderOpen, User, ChevronDown, ChevronRight } from "lucide-react";
 
 type Tab = "summary" | "duplication" | "automation" | "resource" | "charts" | "collaboration";
 

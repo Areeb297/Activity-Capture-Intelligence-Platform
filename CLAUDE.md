@@ -110,7 +110,9 @@ cd /root/activity_analyzer/backend
 git pull
 source venv/bin/activate
 pip install -r requirements.txt   # only needed if requirements.txt changed
-systemctl restart activity-analyser
+pkill -f "uvicorn main:app"
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+curl http://localhost:8000/health
 ```
 
 ---
@@ -181,8 +183,12 @@ Copy `backend/.env.example` to `backend/.env` and fill in:
 - **DB:** NeonDB `square-meadow-78277597`, branch `production`
 - **DB connection:** `postgresql://neondb_owner:npg_eyT3LVwcU5np@ep-withered-block-am8m6dq0-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
 - **Parser reads:** only the `Survey` sheet — all `Smpl-*` sheets are ignored
-- **Agents:** DuplicationAgent → pgvector pre-filter (≥0.70) then LLM judge; AutomationAgent → LLM re-scores every activity; ResourceAgent → SQL agg then LLM; NarrativeAgent → fires after all three complete
-- **Orchestration:** `asyncio.gather()` fans out three agents in parallel; `asyncio.to_thread()` wraps synchronous agent code
+- **Agents (5 total):** DuplicationAgent → pgvector pre-filter (≥0.70) then LLM judge; AutomationAgent → LLM re-scores every activity; ResourceAgent → SQL agg then LLM; CollaborationAgent → cross-dept opportunities; NarrativeAgent → fires after all four complete
+- **Orchestration:** `asyncio.gather()` fans out four agents in parallel; `asyncio.to_thread()` wraps synchronous agent code; CollaborationAgent failure is non-blocking
+- **Narrative output:** HTML format (`<p>`, `<strong>`, `<ul>`) — concise 2–3 sentences per paragraph; rendered with `dangerouslySetInnerHTML` in `NarrativeSummary.tsx`
+- **DB extra column:** `analysis_runs.collaboration_status` (added via ALTER TABLE)
 - **Frontend API proxy:** `next.config.ts` proxies `/api/*` → `http://localhost:8000`
+- **Badge component:** uses `label` prop (NOT `children`) — `<Badge variant="danger" label="High" />`
+- **Build test rule:** ALWAYS run `npm run build` locally in `frontend/` before pushing to avoid Vercel build failures
 
 For full details see [`docs/architecture.md`](docs/architecture.md).
