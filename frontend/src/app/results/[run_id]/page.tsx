@@ -11,16 +11,18 @@ import AutomationPanel from "@/components/dashboard/AutomationPanel";
 import ResourcePanel from "@/components/dashboard/ResourcePanel";
 import NarrativeSummary from "@/components/dashboard/NarrativeSummary";
 import ChartsPanel from "@/components/dashboard/ChartsPanel";
-import { ArrowLeft, Copy, Zap, Users, FileText, BarChart2 } from "lucide-react";
+import CollaborationPanel from "@/components/dashboard/CollaborationPanel";
+import { ArrowLeft, Copy, Zap, Users, FileText, BarChart2, Network } from "lucide-react";
 
-type Tab = "summary" | "duplication" | "automation" | "resource" | "charts";
+type Tab = "summary" | "duplication" | "automation" | "resource" | "charts" | "collaboration";
 
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
-  { key: "summary",     label: "Executive Summary", icon: FileText  },
-  { key: "duplication", label: "Duplication",        icon: Copy     },
-  { key: "automation",  label: "Automation",         icon: Zap      },
-  { key: "resource",    label: "Resource Load",      icon: Users    },
-  { key: "charts",      label: "Charts",             icon: BarChart2},
+  { key: "summary",       label: "Executive Summary", icon: FileText  },
+  { key: "duplication",   label: "Duplication",        icon: Copy     },
+  { key: "automation",    label: "Automation",         icon: Zap      },
+  { key: "resource",      label: "Resource Load",      icon: Users    },
+  { key: "charts",        label: "Charts",             icon: BarChart2},
+  { key: "collaboration", label: "Cross-Dept",         icon: Network  },
 ];
 
 export default function ResultsPage() {
@@ -112,16 +114,16 @@ export default function ResultsPage() {
       {/* KPI row */}
       <KPICards results={filteredResults} filteredDept={dept} />
 
-      {/* Tabs */}
+      {/* Tabs — scrollable on mobile */}
       <div className="mt-8 border-b border-slate-200">
-        <nav className="flex gap-0.5" role="tablist" aria-label="Result sections">
+        <nav className="flex gap-0.5 overflow-x-auto scrollbar-none" role="tablist" aria-label="Result sections">
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`group flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all ${
+              className={`group flex shrink-0 items-center gap-2 rounded-t-xl px-4 py-3 text-sm font-medium whitespace-nowrap transition-all ${
                 tab === key
                   ? "border-b-2 border-brand-primary bg-white text-brand-primary shadow-sm"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
@@ -136,11 +138,12 @@ export default function ResultsPage() {
 
       {/* Tab content */}
       <div role="tabpanel" className="mt-6">
-        {tab === "summary"     && <NarrativeSummary narrative={filteredResults.narrative} />}
-        {tab === "duplication" && <DuplicationPanel pairs={filteredResults.duplication} />}
-        {tab === "automation"  && <AutomationPanel activities={filteredResults.automation} />}
-        {tab === "resource"    && <ResourcePanel employees={filteredResults.resource} />}
-        {tab === "charts"      && <ChartsPanel results={filteredResults} />}
+        {tab === "summary"       && <NarrativeSummary narrative={filteredResults.narrative} />}
+        {tab === "duplication"   && <DuplicationPanel pairs={filteredResults.duplication} />}
+        {tab === "automation"    && <AutomationPanel activities={filteredResults.automation} />}
+        {tab === "resource"      && <ResourcePanel employees={filteredResults.resource} />}
+        {tab === "charts"        && <ChartsPanel results={filteredResults} />}
+        {tab === "collaboration" && <CollaborationPanel opportunities={filteredResults.collaboration ?? []} />}
       </div>
     </div>
   );

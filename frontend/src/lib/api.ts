@@ -31,6 +31,7 @@ export async function getResults(runId: string): Promise<Results> {
     duplication: dash.duplication?.pairs ?? [],
     automation: dash.automation?.scored_activities ?? [],
     resource: dash.resource?.employees ?? [],
+    collaboration: dash.collaboration?.opportunities ?? [],
     narrative: dash.narrative ?? { executive_summary: "", key_findings: [], action_items: [] },
   };
 }

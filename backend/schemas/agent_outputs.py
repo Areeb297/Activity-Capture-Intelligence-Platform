@@ -37,16 +37,16 @@ class DuplicationResult(BaseModel):
 class AutomationScore(BaseModel):
     activity_id: str
     employee_id: str               # UUID of the employee — used for dashboard employee_id filter
-    description: str
-    employee_name: str
+    description: str = ""
+    employee_name: str = ""
     function: str | None = None    # department/function the employee belongs to
     pct_time: float | None = None  # % of time spent on this activity
     frequency: str | None = None   # Daily / Weekly / Monthly / etc.
-    automation_score: int          # 0–100
-    confidence: Literal["High", "Medium", "Low"]
-    suggested_tool: str | None     # e.g. "RPA / Power Automate", "Python script"
-    reasoning: str
-    employee_said: str | None      # original Can Be Automated? value
+    automation_score: int = 0      # 0–100
+    confidence: str = "Medium"     # High / Medium / Low
+    suggested_tool: str | None = None   # e.g. "RPA / Power Automate", "Python script"
+    reasoning: str = ""
+    employee_said: str | None = None    # original Can Be Automated? value
 
 
 class AutomationResult(BaseModel):
@@ -72,6 +72,23 @@ class EmployeeTimeBreakdown(BaseModel):
 class ResourceResult(BaseModel):
     employees: list[EmployeeTimeBreakdown]
     overloaded_count: int
+    summary: str
+
+
+# ── Collaboration Agent ────────────────────────────────────────────────────────
+
+class CollaborationOpportunity(BaseModel):
+    dept_a: str
+    dept_b: str
+    activity_a_description: str
+    activity_b_description: str
+    opportunity_type: Literal["Joint Ownership", "Dependency Gap", "Consolidation"]
+    impact: Literal["High", "Medium", "Low"]
+    suggested_action: str
+
+
+class CollaborationResult(BaseModel):
+    opportunities: list[CollaborationOpportunity]
     summary: str
 
 

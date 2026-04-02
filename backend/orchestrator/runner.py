@@ -33,6 +33,7 @@ from agents.duplication_agent import DuplicationAgent
 from agents.automation_agent import AutomationAgent
 from agents.resource_agent import ResourceAgent
 from agents.narrative_agent import NarrativeAgent
+from agents.collaboration_agent import CollaborationAgent
 
 log = logging.getLogger("activity_analyser")
 
@@ -108,14 +109,24 @@ def _run_resource(run_id: str, activities: list[dict]) -> dict:
     return result
 
 
-def _run_narrative(run_id: str, dup: dict, auto: dict, res: dict) -> dict:
-    log.info("[narrative] Synthesising executive summary from all three agents...")
+def _run_collaboration(run_id: str, activities: list[dict]) -> dict:
+    log.info("[collaboration] Mapping cross-department opportunities for %d activities...", len(activities))
+    t0 = time.time()
+    agent = CollaborationAgent(run_id=run_id, activities=activities)
+    result = agent.run()
+    log.info("[collaboration] Done in %.1fs.", time.time() - t0)
+    return result
+
+
+def _run_narrative(run_id: str, dup: dict, auto: dict, res: dict, collab: dict) -> dict:
+    log.info("[narrative] Synthesising executive summary from all four agents...")
     t0 = time.time()
     agent = NarrativeAgent(
         run_id=run_id,
         duplication_result=dup,
         automation_result=auto,
         resource_result=res,
+        collaboration_result=collab,
     )
     result = agent.run()
     log.info("[narrative] Done in %.1fs.", time.time() - t0)
@@ -150,27 +161,30 @@ async def run_analysis(run_id: str, submission_id: str) -> None:
         log.info("[step 1/3] Generating embeddings...")
         await generate_and_store_embeddings(submission_id)
 
-        # Step 2: fetch activities once — shared by AutomationAgent and ResourceAgent
+        # Step 2: fetch activities once — shared by Automation, Resource, and Collaboration agents
         with get_conn() as conn:
             activities = fetch_activities_for_submission(conn, submission_id)
-        log.info("[step 2/3] Fanning out — 3 agents running in parallel (%d activities)...", len(activities))
+        log.info("[step 2/3] Fanning out — 4 agents running in parallel (%d activities)...", len(activities))
         set_status("duplication", "running")
         set_status("automation", "running")
         set_status("resource", "running")
+        set_status("collaboration", "running")
 
-        dup_task  = asyncio.to_thread(_run_duplication, run_id, submission_id)
-        auto_task = asyncio.to_thread(_run_automation, run_id, activities)
-        res_task  = asyncio.to_thread(_run_resource, run_id, activities)
+        dup_task    = asyncio.to_thread(_run_duplication, run_id, submission_id)
+        auto_task   = asyncio.to_thread(_run_automation, run_id, activities)
+        res_task    = asyncio.to_thread(_run_resource, run_id, activities)
+        collab_task = asyncio.to_thread(_run_collaboration, run_id, activities)
 
-        results = await asyncio.gather(dup_task, auto_task, res_task, return_exceptions=True)
+        results = await asyncio.gather(dup_task, auto_task, res_task, collab_task, return_exceptions=True)
 
-        dup_result, auto_result, res_result = results
+        dup_result, auto_result, res_result, collab_result = results
 
         # Handle per-agent failures gracefully
         for name, result in [
-            ("duplication", dup_result),
-            ("automation",  auto_result),
-            ("resource",    res_result),
+            ("duplication",   dup_result),
+            ("automation",    auto_result),
+            ("resource",      res_result),
+            ("collaboration", collab_result),
         ]:
             if isinstance(result, Exception):
                 log.error("[%s] FAILED: %s", name, result, exc_info=result)
@@ -180,17 +194,19 @@ async def run_analysis(run_id: str, submission_id: str) -> None:
                 set_status(name, "complete")
                 save_result(name, result)
 
-        # Step 3: Narrative — only if all three succeeded
-        if any(isinstance(r, Exception) for r in results):
-            log.error("[step 3/3] Skipping narrative — one or more agents failed.")
+        # Step 3: Narrative — only if core three succeeded (collaboration failure is non-blocking)
+        core_failed = any(isinstance(r, Exception) for r in [dup_result, auto_result, res_result])
+        if core_failed:
+            log.error("[step 3/3] Skipping narrative — one or more core agents failed.")
             set_status("narrative", "failed")
             set_status(None, "failed")
             return
 
+        safe_collab = collab_result if not isinstance(collab_result, Exception) else {}
         log.info("[step 3/3] Running narrative agent...")
         set_status("narrative", "running")
         narrative_result = await asyncio.to_thread(
-            _run_narrative, run_id, dup_result, auto_result, res_result
+            _run_narrative, run_id, dup_result, auto_result, res_result, safe_collab
         )
         set_status("narrative", "complete")
         save_result("narrative", narrative_result)

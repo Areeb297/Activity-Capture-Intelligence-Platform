@@ -14,16 +14,17 @@ const priorityColor: Record<string, string> = {
 
 export default function NarrativeSummary({ narrative }: Props) {
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
+    <div className="grid gap-5 grid-cols-1 lg:grid-cols-3">
       {/* Executive summary */}
       <Card className="lg:col-span-2">
         <div className="mb-3 flex items-center gap-2">
           <FileText className="size-4 text-brand-primary" />
           <h3 className="font-heading text-sm font-semibold text-brand-text">Executive Summary</h3>
         </div>
-        <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-          {narrative.executive_summary}
-        </p>
+        <div
+          className="text-sm text-slate-700 [&_p]:mb-3 [&_p]:leading-relaxed [&_strong]:font-semibold [&_strong]:text-slate-800 [&_ul]:mt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_li]:mb-1 [&_li]:text-slate-700"
+          dangerouslySetInnerHTML={{ __html: narrative.executive_summary }}
+        />
       </Card>
 
       {/* Action items + key findings */}

@@ -7,6 +7,7 @@ export interface UploadResponse {
   files_skipped: string[];
   employee_count: number;
   activity_count: number;
+  departments: Record<string, string[]>;
 }
 
 // ─── Status ────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ export interface RunStatus {
   automation_status: AgentStatus;
   resource_status: AgentStatus;
   narrative_status: AgentStatus;
+  collaboration_status: AgentStatus;
   started_at: string;
   completed_at: string | null;
 }
@@ -75,11 +77,22 @@ export interface ActionItem {
   rationale: string;
 }
 
+export interface CollaborationOpportunity {
+  dept_a: string;
+  dept_b: string;
+  activity_a_description: string;
+  activity_b_description: string;
+  opportunity_type: "Joint Ownership" | "Dependency Gap" | "Consolidation";
+  impact: "High" | "Medium" | "Low";
+  suggested_action: string;
+}
+
 export interface Results {
   run_id: string;
   duplication: DuplicationPair[];
   automation: AutomationActivity[];
   resource: ResourceEmployee[];
+  collaboration: CollaborationOpportunity[];
   narrative: {
     executive_summary: string;
     key_findings: string[];
@@ -101,6 +114,7 @@ export interface HistoryRun {
   automation_status: AgentStatus | null;
   resource_status: AgentStatus | null;
   narrative_status: AgentStatus | null;
+  collaboration_status: AgentStatus | null;
   started_at: string | null;
   completed_at: string | null;
 }

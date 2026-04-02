@@ -1,10 +1,10 @@
 "use client";
-import { CheckCircle, Circle, XCircle, Search, Zap, Users, FileText } from "lucide-react";
+import { CheckCircle, Circle, XCircle, Search, Zap, Users, FileText, Network } from "lucide-react";
 import type { AgentStatus, RunStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const AGENTS: {
-  key: keyof Pick<RunStatus, "duplication_status" | "automation_status" | "resource_status" | "narrative_status">;
+  key: keyof Pick<RunStatus, "duplication_status" | "automation_status" | "resource_status" | "collaboration_status" | "narrative_status">;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -36,9 +36,17 @@ const AGENTS: {
     bg: "bg-orange-50 border-orange-100",
   },
   {
+    key: "collaboration_status",
+    label: "Collaboration Mapper",
+    description: "Identifies cross-department coordination opportunities and dependency gaps",
+    icon: Network,
+    color: "text-indigo-500",
+    bg: "bg-indigo-50 border-indigo-100",
+  },
+  {
     key: "narrative_status",
     label: "Narrative Synthesiser",
-    description: "Writes executive summary and action items from all three agents",
+    description: "Writes executive summary and action items from all four agents",
     icon: FileText,
     color: "text-blue-500",
     bg: "bg-blue-50 border-blue-100",
@@ -85,8 +93,8 @@ export default function AgentStatusCards({ runStatus }: Props) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {AGENTS.map(({ key, label, description, icon: Icon, color, bg }, idx) => {
-        const status = runStatus[key];
-        const isNarrative = idx === 3;
+        const status = runStatus[key] ?? "pending";
+        const isNarrative = idx === 4; // Narrative Synthesiser spans full width
         return (
           <div
             key={key}

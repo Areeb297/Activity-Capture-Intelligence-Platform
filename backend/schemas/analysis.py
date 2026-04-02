@@ -14,6 +14,7 @@ class AnalysisRunResponse(BaseModel):
     automation_status: str
     resource_status: str
     narrative_status: str
+    collaboration_status: str = "pending"
 
 
 class StartAnalysisResponse(BaseModel):

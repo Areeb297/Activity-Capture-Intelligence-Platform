@@ -100,9 +100,10 @@ def get_dashboard(
     # Index results by agent name
     by_agent = {r["agent_name"]: r["result_json"] for r in raw_results}
 
-    dup_data = by_agent.get("duplication", {})
-    auto_data = by_agent.get("automation", {})
-    res_data = by_agent.get("resource", {})
+    dup_data       = by_agent.get("duplication", {})
+    auto_data      = by_agent.get("automation", {})
+    res_data       = by_agent.get("resource", {})
+    collab_data    = by_agent.get("collaboration", {})
     narrative_data = by_agent.get("narrative", {})
 
     # Apply filters
@@ -137,6 +138,10 @@ def get_dashboard(
             "summary": res_data.get("summary", ""),
             "overloaded_count": filtered_kpis["overloaded_employees"],
             "employees": employees,
+        },
+        "collaboration": {
+            "summary": collab_data.get("summary", ""),
+            "opportunities": collab_data.get("opportunities", []),
         },
         "narrative": narrative_data,
     }

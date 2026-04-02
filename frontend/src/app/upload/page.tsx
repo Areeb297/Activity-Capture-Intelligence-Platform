@@ -5,17 +5,21 @@ import { ArrowRight, Info, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import DropZone from "@/components/upload/DropZone";
 import FileList from "@/components/upload/FileList";
+import DepartmentFolderTree from "@/components/upload/DepartmentFolderTree";
 import Spinner from "@/components/ui/Spinner";
 import { uploadFiles, startAnalysis } from "@/lib/api";
+import type { UploadResponse } from "@/lib/types";
 
-type Stage = "idle" | "uploading" | "starting" | "error";
+type Stage = "idle" | "uploading" | "starting" | "ready" | "error";
 
 export default function UploadPage() {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [files, setFiles]   = useState<File[]>([]);
-  const [stage, setStage]   = useState<Stage>("idle");
-  const [error, setError]   = useState<string | null>(null);
+  const [files, setFiles]         = useState<File[]>([]);
+  const [stage, setStage]         = useState<Stage>("idle");
+  const [error, setError]         = useState<string | null>(null);
+  const [uploadResult, setUploadResult] = useState<UploadResponse | null>(null);
+  const [runId, setRunId]         = useState<string | null>(null);
 
   const addFiles = useCallback((incoming: File[]) => {
     startTransition(() => {
@@ -38,13 +42,19 @@ export default function UploadPage() {
     try {
       setStage("uploading");
       const upload = await uploadFiles(files);
+      setUploadResult(upload);
 
       setStage("starting");
       const { run_id } = await startAnalysis(upload.submission_id);
+      setRunId(run_id);
 
-      router.push(
-        `/status/${run_id}?submission=${upload.submission_id}&employees=${upload.employee_count ?? files.length}`,
-      );
+      // Show folder tree briefly, then navigate
+      setStage("ready");
+      setTimeout(() => {
+        router.push(
+          `/status/${run_id}?submission=${upload.submission_id}&employees=${upload.employee_count ?? files.length}`,
+        );
+      }, 2000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
       setStage("error");
@@ -52,6 +62,7 @@ export default function UploadPage() {
   };
 
   const busy = stage === "uploading" || stage === "starting";
+  void runId; // used for navigation
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -89,6 +100,15 @@ export default function UploadPage() {
 
       <DropZone onFiles={addFiles} disabled={busy} />
       <FileList files={files} onRemove={removeFile} />
+
+      {uploadResult && stage === "ready" && (
+        <>
+          <DepartmentFolderTree departments={uploadResult.departments} />
+          <p className="mt-3 text-center text-xs text-slate-500 animate-pulse">
+            Starting analysis — redirecting in a moment…
+          </p>
+        </>
+      )}
 
       {error && (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

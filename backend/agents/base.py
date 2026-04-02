@@ -34,7 +34,7 @@ from core.config import settings
 # QUALITY tier (~25–60s per agent):
 #   "anthropic/claude-4.6-sonnet-20260217"   ← Claude 4.6 Sonnet (slow but best)
 #   "anthropic/claude-4.5-sonnet-20250929"   ← Claude 4.5 Sonnet
-MODEL = "anthropic/claude-4.5-haiku-20251001"
+MODEL = "x-ai/grok-4.1-fast"
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 

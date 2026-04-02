@@ -93,6 +93,12 @@ async def upload_files(files: list[UploadFile] = File(...)):
                 )
                 activity_count += 1
 
+    # Group employees by department/function for folder-tree UI
+    departments: dict[str, list[str]] = {}
+    for emp in parsed_employees:
+        fn = emp.function or "Unassigned"
+        departments.setdefault(fn, []).append(emp.employee_name or "Unknown")
+
     return {
         "submission_id": submission_id,
         "batch_label": batch_label,
@@ -100,5 +106,6 @@ async def upload_files(files: list[UploadFile] = File(...)):
         "files_skipped": skipped,
         "employee_count": len(parsed_employees),
         "activity_count": activity_count,
+        "departments": departments,
         "next_step": f"POST /analyse/{submission_id}",
     }

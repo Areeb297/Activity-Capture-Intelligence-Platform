@@ -113,7 +113,7 @@ def update_run_status(conn, run_id: str, status: str) -> None:
 def update_agent_status(conn, run_id: str, agent_name: str, status: str) -> None:
     """Update the per-agent status column in analysis_runs."""
     col = f"{agent_name}_status"
-    allowed = {"duplication_status", "automation_status", "resource_status", "narrative_status"}
+    allowed = {"duplication_status", "automation_status", "resource_status", "narrative_status", "collaboration_status"}
     if col not in allowed:
         raise ValueError(f"Unknown agent status column: {col}")
     with conn.cursor() as cur:
@@ -207,7 +207,8 @@ def fetch_run_status(conn, run_id: str) -> dict | None:
         cur.execute(
             """
             SELECT id AS run_id, submission_id, status, started_at, completed_at,
-                   duplication_status, automation_status, resource_status, narrative_status
+                   duplication_status, automation_status, resource_status, narrative_status,
+                   COALESCE(collaboration_status, 'pending') AS collaboration_status
             FROM analysis_runs WHERE id = %s
             """,
             (run_id,),

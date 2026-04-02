@@ -19,37 +19,40 @@ The MD launched this exercise to understand four specific things:
   3. Which activities are critical to business performance and control (vs mundane/admin)
   4. Where simplification, automation, or consolidation may be possible
 
-You will receive structured outputs from three AI agents:
+You will receive structured outputs from four AI agents:
   - Duplication Detector: pairs of employees doing overlapping or identical work
   - Automation Scorer: every activity scored 0-100 for automation potential
   - Resource Analyser: per-employee time breakdown by value type, flagging admin overload
+  - Collaboration Mapper: cross-department coordination gaps and joint-ownership opportunities
 
-Your output must address ALL FOUR of the MD's objectives. Structure:
+CRITICAL TONE AND FORMAT RULES:
+- Each paragraph: 2-3 sentences MAX. No waffle. No filler.
+- Name specific job titles, functions, and activity types. Never be generic.
+- Board-ready: the MD wants facts and numbers, not management-speak.
+- executive_summary field must be valid HTML using only: <p>, <strong>, <ul>, <li>. NO other tags.
 
-1. Executive Summary (4-5 paragraphs):
-   - Para 1: Overall picture — how is head office time actually being spent? Name the functions with heaviest admin load.
-   - Para 2: Duplication findings — which roles/functions have overlapping work? Be specific about job titles and activity descriptions.
-   - Para 3: Critical vs mundane — which activities are genuinely business-critical vs routine/administrative? Flag employees where admin exceeds 60% of their time.
-   - Para 4: Automation and consolidation opportunities — which specific activity types should be automated or merged? Name tools or approaches.
-   - Para 5: Overall recommendation and urgency.
+Your output must address ALL FOUR MD objectives. Structure:
 
-2. Key Findings (6-10 bullet points):
-   - Each must start with an action verb
-   - Must cover all four MD objectives
-   - Be specific: name functions, job titles, or activity types where possible
-   - Flag any employee whose time is dominated by mundane/admin tasks
+1. Executive Summary — 5 short HTML paragraphs:
+   - Para 1 (<p>): <strong>Time allocation:</strong> How is time actually split across functions? Name the functions with heaviest admin load and give the %-split if available.
+   - Para 2 (<p>): <strong>Duplication:</strong> Which specific job titles / function pairs have overlapping work? State the cosine score and activity description.
+   - Para 3 (<p>): <strong>Critical vs mundane:</strong> Which activities are genuinely business-critical? Name any employee where admin exceeds 60% of their time.
+   - Para 4 (<p>): <strong>Automation & cross-department gaps:</strong> Name the highest-scoring automation activities and any cross-department collaboration opportunities identified.
+   - Para 5 (<p>): <strong>Recommendation:</strong> One clear sentence on urgency and top priority action.
+
+2. Key Findings (6-10 bullets):
+   - Each starts with an action verb
+   - Covers all four MD objectives
+   - Names functions, job titles, or activity types
 
 3. Action Items (5-10 items):
-   - Must include at least one action per MD objective
-   - Prioritise by business impact
-   - Be concrete: "Consolidate X and Y activities under Z role" not "review processes"
-   - Include realistic owner and rationale
-
-Tone: Direct, board-ready, no fluff. The MD wants facts and clear direction, not generic observations.
+   - At least one per MD objective
+   - Concrete: "Consolidate X and Y under Z role" not "review processes"
+   - Prioritised by business impact
 
 Respond ONLY with JSON matching this schema exactly:
 {
-  "executive_summary": "paragraph1\\n\\nparagraph2\\n\\nparagraph3\\n\\nparagraph4\\n\\nparagraph5",
+  "executive_summary": "<p><strong>Time allocation:</strong> ...</p><p><strong>Duplication:</strong> ...</p><p><strong>Critical vs mundane:</strong> ...</p><p><strong>Automation &amp; cross-department gaps:</strong> ...</p><p><strong>Recommendation:</strong> ...</p>",
   "key_findings": ["Finding one", "Finding two"],
   "action_items": [
     {
@@ -67,9 +70,10 @@ class NarrativeAgent(BaseAgent):
     """
     Args:
         run_id: The analysis run UUID.
-        duplication_result: dict output from DuplicationAgent.run()
-        automation_result:  dict output from AutomationAgent.run()
-        resource_result:    dict output from ResourceAgent.run()
+        duplication_result:   dict output from DuplicationAgent.run()
+        automation_result:    dict output from AutomationAgent.run()
+        resource_result:      dict output from ResourceAgent.run()
+        collaboration_result: dict output from CollaborationAgent.run() (optional)
     """
 
     def __init__(
@@ -78,22 +82,26 @@ class NarrativeAgent(BaseAgent):
         duplication_result: dict,
         automation_result: dict,
         resource_result: dict,
+        collaboration_result: dict | None = None,
     ):
         super().__init__(run_id)
         self.duplication_result = duplication_result
         self.automation_result = automation_result
         self.resource_result = resource_result
+        self.collaboration_result = collaboration_result or {}
 
     def run(self) -> dict:
         combined = {
             "duplication_analysis": self.duplication_result,
             "automation_analysis": self.automation_result,
             "resource_analysis": self.resource_result,
+            "collaboration_analysis": self.collaboration_result,
         }
 
         user_msg = (
             "Generate an executive summary and action plan based on the following "
-            "analysis results:\n\n"
+            "analysis results. Remember: HTML format, 2-3 sentences per paragraph, "
+            "specific names and numbers only.\n\n"
             f"{json.dumps(combined, indent=2, default=str)}"
         )
 
