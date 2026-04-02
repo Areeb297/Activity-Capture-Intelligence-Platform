@@ -1,0 +1,403 @@
+Welcome to Multi-Agent Systems
+Welcome to Multi-Agent Systems. There is no better time than now to start building agents to transform your workflows with AI. Many of us have a good understanding of heuristic methods to use in uncertain situations in our jobs, and by taking advantage of multi-agent systems, we can begin to build reliable processes that replicate our own problem-solving, allowing us to focus on refining those procedures over time rather than needing to feel burdened by needing to memoriWhat is a Multi-Agent System?
+You probably have a good understanding of how to solve problems in uncertain situations in your job, and multi-agent systems allow us to structure these abstract processes so you can mainly focus on tweaking and editing natural language prompts instead of worrying about figuring out exact formulas or algorithms or dealing with messy data or confusing and complicated connections to disparate systems.
+
+A multi-agent system is a computational program which can receive complicated natural language requests from users and respond agentically; that is, there is no strictly defined or pre-determined sequence of checks that an agent will go through in responding to a user question. In a multi-agent system, by defining agents with distinct goals and personalities, we can begin to approximate the kind of interactivity that occurs between humans working on a problem.
+
+Let's start with an example everyone can relate to. Think about how a restaurant operates. You have hosts who greet customers and manage seating, waiters who take orders and deliver food, chefs who specialize in different types of cooking, busboys who clean up when customers leave, and managers who oversee the whole operation. Each person has a clear role, and they communicate with each other to deliver a complete experience. Multi-agent AI systems work in a similar way, and we can extend this thought process to essentially any kind of business system that operates based on well-defined roles and responsibilities.
+
+Tools and Capabilities
+To make multi-agent systems powerful, we need to make sure that the agents themselves can integrate with our business systems. This requires us to enable them with complex tools. We also need to learn how to route data and memories between agents as well as how to use agents to carefully augment requests to AI models with relevant context.
+
+Skills You'll Master
+By the end of this course, you'll be able to design, build, and coordinate these systems to tackle real-world tasks.
+
+You'll be able to design and develop multi-agent systems that can carry out multi-step procedures to accomplish user requests.
+You'll be able to approach work more abstractly through agentic prompt flows that let you worry more about the hard stuff while the agents can take care of the nuts and bolts syntax and details.ze tons of steps.Hi, everyone. Welcome to this course on multi-agent systems.There is no better time than now to start building agents,to transform your workflows with AI.Many of us have a good understanding ofheuristic methods to use in uncertain situations in our jobs.By taking advantage of multi-agent systems,we can begin to build reliable processes that replicate our own problem-solving,allowing us to focus on refining those procedures over time,rather than needing to feel burdened by needing to memorize tons of steps.By the end of this course,you'll be able to design and develop multi-agent systems thatcan carry out multi-step procedures to accomplish user requests.You'll be able to approach work more abstractly throughagentic prompt flows that let you worryabout the hard stuff while the agentstake care of the nuts and bolts, syntax, and details.You probably have a good understanding of how tosolve problems in uncertain situations in your job.Multi-agent systems allow us to structure these abstract processes,so you can mainly focus on tweaking and editing natural language prompts,instead of worrying about figuring out exact formulas or algorithms,or dealing with messy data or confusing and complicated connections to disparate systems.A multi-agent system is a computational program which canreceive complicated natural language requests from users and respond agentically.That is, there isno strictly defined or predetermined sequence ofchecks that an agent will go through in responding to a user's question.In a multi-agent system,by defining agents with distinct goals and personalities,we can begin to approximatethe interactivity that occurs between humans working on a problem.Let's start with an example everyone can relate to.Think of how a restaurant operates.You have hosts who greet customers and manage seating,waiters who take orders and deliver food,chefs who specialize in different types of cooking,busboys who clean up when customers leave,managers who oversee the whole operation.Each person has a clear role,and they communicate with each other to deliver a complete experience.Multi-agent AI systems work in a similar way.We can extend this thought process to essentially any kind ofbusiness system that operates based on well-defined roles and responsibilities.To make multi-agent systems powerful,we need to make sure that the agents themselves can integrate with our business systems.This requires us to enable them with complex tools.We also need to learn how to route data and memories between agents,as well as how to use agents tocarefully augment requests to AI models with relevant contexts.When agents can use tools to experiment and to verify claims,hallucinations are reduced,and user requests are successfully accomplished.Introduction to Architectural Thinking
+Before a single line of code is written for a skyscraper, an architect creates a detailed blueprint. This blueprint defines the purpose of each floor, the path of the electrical and plumbing systems, and how people will move through the building. Without this plan, you'd have chaos. Building a multi-agent system is no different. You are the architect, and your first job is to draw the blueprint.
+
+Let's focus on Multi-Agent Architecture Design. This is the high-level structure that defines what each agent's job is, who they need to talk to, and the rules of engagement for their communication. Our mental model here is that of an organizational chart for your AI team. You'll decide if you need a "manager" (an Orchestrator) who delegates tasks, or a more collaborative "flat" structure (Peer-to-Peer) where expert agents communicate directly. Getting this blueprint right is an important step to building a system that doesn't collapse under pressure.Key Terms:
+
+Architecture: The fundamental organization of a system, embodied in its components, their relationships to each other and the environment, and the principles governing its design and evolution.
+Orchestrator Pattern: A centralized architecture where a single agent (the orchestrator) manages and delegates tasks to a team of worker agents.
+Peer-to-Peer Pattern: A decentralized architecture where agents can communicate and coordinate directly with each other without a central manager.
+Role Specialization: The principle of assigning each agent a specific, well-defined job or responsibility.
+Data Flow: The path that data takes through the system, moving from one agent to another.How do we create a system where multiple agentscollaborate effectively to achieve a goal that's beyond any single member?Think of yourselves as the architect.You're drawing the blueprints for how this AI team will function.Who does what? How do they talk to each other?What are the rules of engagement?We need to define clear rules and responsibilities and mapout how data will flow between agents in a multi-agent system.There are a few different approaches to structuring these systems.You might use an orchestrator pattern wherea central coordinator directsspecialized workers similar to how a project manager delegates tasks.Let's look at an E-commerce return system as an example.When a customer submits a return request,the orchestrator receives it and activates the right specialist.A policy agent checks eligibility requirements.An inventory agent prepares stock updates.A refund agent processes the payment return,and a communication agent keeps the customer informed throughout.Each specialized function is handled by an agent specifically designed for that task.Let's see a task comes into the orchestrator.It analyzes the task, breaks it down,and then delegates sub-tasks to appropriate worker agents,often in a specific sequence.A worker does its job.For example, checks inventory,reports back to the orchestrator,which might then pass the result to the next worker in the chain, for example,process payment, or gather all the results to formulate the final output.Communication primarily flows throughthe central orchestrator like a hub and spoke model.This pattern excels in situations with structured,predictable multi-step work flows.Notice the clear mapping,each worker handles a distinct business function,policy, inventory, refund, communication.The orchestrator enforces the correct order.This is crucial and manages the state of the whole return process.This centralized control makes designing,managing, and debugging complex,but structured workflows much simpler than if agents were just interacting randomly.It's a go to for automating things like order fulfillment,support ticket routing, or generating complex reports.Another potential architecture pattern you can use is peer-to-peer direct routing,where requests immediately go to the most qualified agent for handling.In this pattern, agents often communicate directly with each otheras needed without every interaction being mediated by a central boss.An agent might receive information or finish a task andthen decide which peer agents it needs to talk to next.Think of a group of specialized researchers collaborating dynamically.In this multi-agent system,communication can be more fluid and less predictable.An agent might broadcast a request for help,or directly route a task to another agent it knows has the right expertise.Sometimes the initial request bypasses any central point and goesstraight to the most relevant specialist agentbased on some initial direct routing logic.Imagine a system trying to diagnose a complex intermittent network failure.A monitoring agent detects an anomaly.It might directly query a topology agentto understand the network layout around the failure point.Based on the topology,it might then task a log analysis agent to check logs fromspecific devices and simultaneously aska traffic analysis agent to look for unusual patterns.These agents might then exchange findingsdirectly before reporting a consolidated diagnosis.This model offers more flexibility.It's great when the exact sequence of steps isn't known upfrontor when you want to avoid potential bottlenecks at a central orchestrator.However, the complexity shifts,managing the overall communication flow,ensuring tasks don't get dropped,coordinating potentially conflicting information,and tracking the overall state becomes significantly harder,especially as the number of agents increases.Regardless of the pattern,you'll also have to define roles, communication protocols,as well as a solid state management and data flow strategies for your multi-agent system?This is why sketching it out first,even just simple boxes and arrows on a whiteboard is so critical.It forces you to answer who talks to whom?What do they need to know?How does the overall job get done?Startup is designing a smart public transportation system using multi-agent architecture. 
+Need clear roles, communication, and easy extensibility of the system:
+
+Define separate agents: Route Planner Agent, Ticketing Agent, Maintenance Monitor each communicating through defined interfaces with the ability to add new agents like 'Passenger Feedback Collector' without reworking existing connections. Question 1 of 3
+Match the architectural patterns of multi-agent systems with their corresponding descriptions:
+
+These are the correct matches.
+Architectural Patterns in Multi-Agent Systems
+
+Design Pattern
+
+A decentralized architecture where agents can communicate and coordinate directly with each other without a central manager.
+
+Peer-to-Peer Pattern
+
+A centralized architecture where a single agent manages and delegates tasks to a team of worker agents.
+
+Orchestrator PatternHello, and welcome to the first demo of our course on multi-agent systems.Today, we are looking at how we can conceptually design a system to helpthe Uluru Cultural Center accommodate native aboriginal speakers in their own languages.We'll start by looking at a diagram.As you can see, we start with the visitor input on the top.The input is evaluated by an orchestrator agent that then decides which agent isbest to pass to based on the language they aretrained on and the extra cultural context that they have.In this case, we have only two example languages,but you can imagine that this could extend to many more.When these specific agents are responding,they can choose whether or not to retrieve additional information from a knowledge base.This information may be in a variety of languages,the agent will have to be able to appropriatelytranslate the information into the language of the user.In summary, a visitor asks a question.The language detector figures out the language.The language agent specialized in that language knows what to do,and retrieves relevant information.They then pass back to the orchestrator,who conveys the message.Simple. In your exercise,you will have to extend this diagram.We will just quickly look through the code for generating.In the code, we see that we have a list of edges and nodes.The nodes represent the different components of the system,and the edges represent the connections between them.The nodes are defined with a name and a type,which is used to determine how they are displayed in the diagram.The edges are defined with a source andtarget node indicating the direction of the connection.If we want to add new nodes that connect to specific nodes within this current diagram,we would also need to add additional edges to connect these new nodes accordingly.In our example, we mainly show back and forth communication,but it is also possible to have your agents and their outputsgo directly to the visitor instead of routing through the orchestrator.Now it's time for you to try.
+
+The principle of assigning each agent a specific, well-defined job or responsibility.Role SpecializationExercise: Multi-Agent Architecture Design
+Lesson
+Downloads
+Cloud Resources
+Your task is to extend the Uluru Cultural Center system by adding new agents or tools to make it more useful and robust.
+In this demo, we'll build a visualization for an interactive guide for the Uluru Cultural Center. How would you design a multi-agent system to answer visitor questions in their native language, provide cultural information, and even help with directions? This demo shows you how to map out your agent architecture using diagrams.
+
+As you review the code, notice how we define the different components of our system - the nodes represent different agents and tools, while the edges show how information flows between them. The node_types dictionary helps us categorize each component visually.
+
+
+# From: lesson-1-multi-agent-architecture-design/demo/demo.py
+
+def demo_uluru_cultural_center():
+    nodes = [
+        "Visitor Input",
+        "Language Identification", 
+        "Arrernte Language Specialist",
+        "Pitjantjatjara Language Specialist",
+        "Knowledge Base Lookup"
+    ]
+
+edges = [
+    ("Visitor Input", "Language Identification"),
+    ("Language Identification", "Arrernte Language Specialist"),
+    ("Language Identification", "Pitjantjatjara Language Specialist"),
+    ("Arrernte Language Specialist", "Knowledge Base Lookup"),
+    ("Pitjantjatjara Language Specialist", "Knowledge Base Lookup"),
+    ("Knowledge Base Lookup", "Arrernte Language Specialist"),
+    ("Knowledge Base Lookup", "Pitjantjatjara Language Specialist"),
+    ("Arrernte Language Specialist", "Language Identification"),
+    ("Pitjantjatjara Language Specialist", "Language Identification"),
+    ("Language Identification", "Visitor Input")
+]
+
+node_types = {
+    "Visitor Input": "user",
+    "Language Identification": "agent", 
+    "Arrernte Language Specialist": "agent",
+    "Pitjantjatjara Language Specialist": "agent",
+    "Knowledge Base Lookup": "tool"
+}
+What You Need to Do
+Look at the base system in starter.py. It has visitors asking questions, language detection, specialists for Arrernte and Pitjantjatjara languages, and a knowledge base. Your job is to add at least one (or more) of these extensions:
+
+Pick One or More:
+Translation Verification Agent Add this after the language specialists to double-check that translations actually make sense and don't lose cultural meaning before sending them back.
+Multimodal Media Tool Pull in images, audio clips, or videos that go with the answer - like recordings of traditional songs or photos of artifacts. Hook this up to both the specialists and the knowledge base.
+Feedback Collector Let visitors rate responses and leave comments. This helps track what's working and what needs improvement.
+Cultural Sensitivity Checker Some Indigenous knowledge is sacred or restricted. This tool filters out anything that shouldn't be publicly shared.
+How to Complete This
+Open starter.py and add your new nodes to the list, create edges between them, and set their types (agent, tool, user, or data). Then just run python starter.py and you'll get a PNG diagram of your architecture.
+
+Think about how information flows between components and whether your additions create any bottlenecks.
+
+Hello, and welcome to our extended Uluru Cultural Center system.We've enhanced the original design by adding four key components.The language specialist agent,the translation verification agent,the multimodal media tool,and the cultural sensitivity checker.These additions create a more robust and culturally sensitive visitor experience.The translation verification agent reviews translations fromlanguage specialists to ensure cultural context isn't lost.The multimodal media tool retrievesresponses with relevant audio clips, images, or videos.Our cultural sensitivity checker is crucial for indigenous knowledge systems,filtering out sacred or restricted information that shouldn't be publicly shared.Finally, the feedback collectorcaptures visitor input to continuously improve the system.In our diagram, you can see how these components create a more robust flow.Language specialists communicate with a knowledge base,but responses now go through verification and enhancement before reaching visitors.The bidirectional connections ensure constant information exchange,just like real conversations.Now let's take a look at the code to see how we added these new elements.First, we added these new nodes to our diagram.Then we connected them to our system by adding a new set of edges.We specify the node types and we run it.That wasn't so bad, was it?Hopefully in this lesson, you have seen that you can usesimple diagramming tools to cleanly visualize flows in a system.Which can help you more effectively design and implement complex multi-agent systems.Oftentimes, when we work on a project,we jump right in and get wrapped up in the specifics of the code,and then when we take a step back to think about what it was we were trying to build,we may see that we have built things in a way that may no longer make sense.To save yourself a lot of time and a lot of headaches,it's usually good to start with a simple conceptual diagram,whether created via code,like in this example, or by hand with pen and paper or stylus and tablet.
+
+We're helping Uluru visitors get accurate cultural information in Arrernte and Pitjantjatjara languages. The system routes questions through language specialists who pull from a knowledge base and return translated, culturally appropriate responses.
+
+How the Base System Works
+Visitor asks a question through the input interface
+Language Identification tool figures out what language they're using (acts like an orchestrator here)
+Routes to either the Arrernte or Pitjantjatjara specialist
+Specialist hits the Knowledge Base to grab relevant info
+Response goes back through the chain, translated properly, to the visitor
+It's a basic loop but gets the job done.
+
+Extensions and Why They Matter
+1. Translation Verification Agent
+
+Sits between the specialists and final output to verify translations. Cultural nuances get lost easily - a word-for-word translation might be technically correct but miss the deeper meaning.
+
+This agent catches anything that doesn't preserve cultural context before visitors see it. Both language specialists send their translations here first, then after verification it goes back to Language Identification for delivery.
+
+2. Multimodal Media Tool
+
+Pulls relevant images, audio clips, and videos to accompany text responses. Some cultural concepts are hard to explain with just words.
+
+A photo of a sacred site, a recording of a traditional song, or video of a ceremony can communicate what paragraphs of text can't. Knowledge Base triggers it when relevant, and it feeds media back to both language specialists.
+
+3. Cultural Sensitivity Checker
+
+Filters knowledge to ensure we're not sharing sacred or restricted information. Some Indigenous knowledge is gender-specific, ceremonial, or just not meant for public sharing.
+
+Without this guard rail, the system could accidentally violate cultural protocols. It sits between Knowledge Base and the specialists, acting as a gatekeeper.
+
+4. Feedback Collector
+
+Captures visitor ratings and comments about their experience. You can't improve what you don't measure.
+
+This tells us which topics confuse people, what works well, and where we need better information. Directly linked to Visitor Input, runs independently so it doesn't slow down the main response flow.
+
+Why It's Built This Way
+Using an orchestrator pattern with Language Identification running the show. Each piece has one job (role specialization), and the orchestrator handles routing. Some steps have to be sequential (can't route before detecting language), but once that's done, tools like media and sensitivity checking can run in parallel.
+Implementing Multi-Agent Architecture
+Introduction to Implementation
+You've drawn the architectural blueprint. Now, it's time to hand those plans to the construction crew. This lesson is about moving from the abstract design to the concrete reality of code. Think of it like this: your architecture diagram showed a box labeled "Policy Agent," but what does that box actually contain? How do you give it the knowledge and skills to do its job?
+
+The mental model for this lesson is job training for your AI agents. The implementation process is where you define an agent's "job description" through a System Prompt, give it the necessary "skills" by equipping it with Tools, and establish the "company communication policy" so it knows how to talk to its colleagues. We'll also cover a critical, often-overlooked technical detail—Serialization—which is how agents package their messages to send to one another, much like putting a letter in an envelope before mailing it.
+Free Response
+Think about a time you had to explain a specific, detailed task to someone. What key pieces of information did you have to provide to ensure they could do it correctly without constant supervision? How did you define the scope of their responsibility?
+
+Your Reflection
+I remember giving a colleague of mine an assignment regarding a project regarding building an app that can visualize results and that the user can chat with the data regarding telecommunication and data circuits data. I had to provide him a scope of work document, what is expected at the end of this result, had to provide specific guidelines, any questions he can ask me directly. Also provided him a prototype and the application flow for visual aid.
+
+Things to think about
+Key Terms:
+
+Implementation: The process of writing the code that brings an architectural design to life.
+Agent Class: A code template (using object-oriented programming) for creating individual agent instances.
+System Prompt: A detailed instruction given to an agent that defines its personality, role, capabilities, and limitations.
+Tools: Specific functions an agent can call to perform actions (e.g., database queries, API calls).
+Serialization: The process of converting a data object (like a Python dictionary) into a string format (like JSON) for transmission.
+Deserialization: The reverse process of converting a string back into a data object.
+
+
+Understanding high level blueprints is great,but you're probably thinking,how do we actually build this?Moving from architecture design to implementationrequires translating our conceptual models into working code.The implementation process involves instantiating multiple agents in a single code base,each with their own specialized role and toolset.We need our agents to exist as actual software components,each ready to perform its specific role.You'll need to define attributes and behavior for each agent component,like its personality, logic,and how it should process information and behave.In most frameworks, you'll encounter agents implemented as classes.This means defining classes for your agents.Often, you'll inherit from some base agent class provided bythe framework and then you'll fill in the specifics for that instance of an agent.It's unique logic, personality,if it has any, and how it processes information.This includes crafting system prompts that define each agent's specialized knowledge.Remember our emphasis on clear roles.This system prompt is arguablythe most critical tool for enforcing that specialization at the implementation level.Think of it as the agent's immutable job description.A well crafted prompt tells the agents who you are.You are a data validation agent. What you do.Your sole purpose is to check incoming user data against predefined schemas.What you don't do, you do not perform calculations or interact with external APIs,what tools you have.You only have access to the validate schema tool.These detailed explicit prompts are essential guide rails.They help the underlying LLM oran orchestrator agent route task correctly and define tool use for its specific function.Ambiguity here is the enemy of reliable multi agent systems.You'll need to assign appropriate tools to each agent?This is where agents get their ability to do things beyond just processing language.Access databases, call APIs, perform complex calculations.Getting this right is non trivial and a common source of bugs.Tool names and descriptions are critical metadata.The LLM often relies heavily on this description to figure out,what does this tool actually do?When should I use it?What information or parameters does it need? Here's a good example.The description of this check inventory tool is checksthe current inventory stock level fora specific product ID by querying the inventory database,returns the current stock count or an error message if the product ID is not found.The arguments include the product ID.The unique product identifier or SKU is to check inventory for quotes.Garbage in garbage out applies here too.The LLM needs to call your tool with the right arguments in the right format.Remember, tools often do more than just fetch data.They encapsulate business rules,perform calculations, apply conditional logic,FL statements, maybe call external APIs using requests or use libraries like datetime.You should expect the unexpected.What happens if the database connection fails?The API returns the 500 error.The requested product ID doesn't exist.Your tool function must not crash the agent.Wrap potentially fallible operations like network calls,database queries, and try,accept blocks inside the accept block.Log the detailed exception traceback for debugging purposes.Trust me, you'll think yourself later when trying to figure out why something failed.Don't just return none or re raise the raw exception,return a clear human readable,or rather LLM readable,string indicating what went wrong from the user's perspective,and establishing protocols for passing messages between them.Let's build a financial advisory system wheredifferent agents must exchange structured data.Our system consists of a client facing advisor agent,a market analysis agent,a portfolio optimization agent,and a regulatory compliance agent.We'll implement a standardized JSON message protocol between these agents,allowing them to exchange complex financial data,like portfolio compositions, market trends, and investment recommendations.When a client asks about retirement planning,the advisor agent structures the request into a standard format.It sends it to the specialized agents and then synthesizes their responses.This structured communication ensures thatcomplex financial concepts areaccurately translated between agents without information loss.The state management concepts and our architectural designs will becomeconcrete implementation details that make our agents persistent and reliable.So our agents are defined,specialized and equipped with robust tools.How do they actually pass information back and forth?Especially in our common orchestrator worker model? Coding the flow.Implementation means translating the arrows inour architecture diagram into actual function calls or message passing.Let's walk through that orchestrator worker flow againthinking about the code. Request in.The orchestrator receives the initial user request.Delegation 1, the orchestrators code identifies that Worker A,for example, data validation agent needs to run.It invokes Worker A,passing the necessary input data as an argument or part of a message object.Execution and return.Worker A executes its logic,likely calling its tool.Its tool returns a result,for example, a pedantic validation result object.Worker A sends this result object back to the orchestrator.Processing and Delegation 2.The orchestrators code receives the validation result object from A.It inspects the result.For example, if the result is valid.Based on this, it decides that Worker B,the calculation agent, is next.It invokes Worker B, passing necessary data,perhaps including the validated data from Worker A's result.Execution and return.Worker B runs, calls its tool, gets a result,for example, a calculation output object,and returns it to the orchestrator.Synthesis. The orchestrator now has results from A and B,its code combines or processes these results to generate the final response for the user.The hidden detail, serialization and deserialization.Notice, agents aren't just passing simple text strings.They're often exchanging complex Python objects,dictionaries, lists, pedantic models.Now, if your agents are all running within the same Python process,passing these objects directly might just work.However, as soon as agents might run ondifferent processes on different machines or communicate over networks,you hit a fundamental issue.You can't directly send a Python object over the wire.Serialization.The object needs to be converted into a transmittable format, typically a string.This process is serialization.The most common format used is JSON.Your pedantic object or dictionary,gets turned into a JSON string.Deserialization.The receiving agent gets this JSON string andneeds to convert it back into a usable Python object.The original pedantic model or dictionary.This is deserialization.Framework magic, usually, here's the good news.Most modern multi agent frameworks are designed to handle this for you automatically,especially for communication within the framework.You define your tools to return pedantic models.You pass messages containing these models,and the framework transparently handles the serialization to JSON whensending and deserialization back to the pedantic model when receiving.It feels like you're just passing Python objects around. Why you still need to know?Even with framework magic,understanding serialization deserialization is vital for debugging.Is the JSON malformed?Did deserization fail for integrating with external systems that expect JSON,or if you're building parts of the communication infrastructure yourself?By meticulously defining our agents with clear prompts,equipping them with well described,typed and error handled tools and implementingthe communication pathways whileunderstanding the underlying serialization that likely happens,we successfully translate our architectural vision into a working multi agent system.It's an iterative process.You'll likely define test,refine prompts, improve tool descriptions,and tweak communication flows as you build.
+
+
+
+Multi-Agent Architecture Implementation
+In most frameworks, you'll encounter agents implemented as classes. You'll often inherit from a base Agent class and then fill in the specifics for that agent's unique logic, personality, and tools.
+
+Agent Attributes and Prompts
+
+The system prompt is a critical tool for enforcing specialization. A well-crafted prompt tells the agent:
+
+Who you are: "You are a Data Validation Agent."
+What you do: "Your sole purpose is to check incoming user data against predefined schemas."
+What you don't do: "You do not perform calculations or interact with external APIs."
+What tools you have: "You ONLY have access to the validate_schema tool."
+Agent Tools
+
+Tools give agents the ability to do things beyond just processing language, such as accessing databases, calling APIs, or performing calculations. Tool names and descriptions are critical metadata that the LLM uses to understand what the tool does and how to use it. It's also crucial to handle errors within your tools to prevent the agent from crashing.
+
+Serialization and Deserialization
+
+When agents communicate, they often exchange complex data objects. Since you can't directly send a Python object over a network, it needs to be serialized (converted to a string, usually JSON). The receiving agent then deserializes the string back into a usable object. Most modern frameworks handle this for you, but it's important to understand the process for debugging.
+
+
+What is Smolagents framework?
+
+Smolagents is a Python framework for building multi-agent systems powered by large language models (LLMs). It is designed to make it easy to create, orchestrate, and manage agents that can use tools (Python functions), maintain state, and collaborate to solve complex tasks.
+
+Smolagents lets you build intelligent, tool-using, multi-agent systems with LLMs and Python, making it easy to combine language understanding with real-world actions and stateful workflows.
+
+How does it work?
+Define Tools: Decorate Python functions with @tool to make them available to agents.
+Create Agents: Subclass ToolCallingAgent and specify which tools the agent can use.
+Orchestrate: Use agents in your application, passing prompts and letting them call tools as needed.
+LLM-Powered Reasoning: The agent framework parses the LLM's output, detects tool calls, and executes the corresponding Python functions.
+What is a ToolCallingAgent?
+ToolCallingAgent is a core class in the Smolagents framework. It represents an agent powered by a large language model (LLM) that can:
+
+Interpret prompts and user input
+Decide when to call Python functions ("tools")
+Execute those tools and use their results in their reasoning
+How does it work?
+Define tools: Decorate Python functions with @tool.
+Create an agent: Instantiate or subclass ToolCallingAgent, passing the tools and an LLM model.
+Interact: Call .run(prompt) on the agent.
+The agent will:
+Use the LLM to interpret the prompt.
+Decide if a tool should be called.
+Call the tool if needed, and use its result in the response.
+from smolagents import ToolCallingAgent, OpenAIServerModel, tool
+import json
+
+# Initialize a small language model
+model = OpenAIServerModel(
+    model_id="gpt-4o-mini",  # Small, efficient model
+    api_key="your-api-key"
+)
+
+# Define tools that agents can use
+@tool
+def get_weather(city: str) -> str:
+    """Get weather information for a city."""
+    return f"Weather in {city}: Sunny, 75°F"
+
+@tool
+def save_data(key: str, value: str) -> str:
+    """Save data to memory."""
+    memory[key] = value
+    return f"Saved: {key} = {value}"
+
+# Global shared state
+memory = {}
+
+# Create a SmoLAgent
+class WeatherAgent(ToolCallingAgent):
+    def __init__(self):
+        super().__init__(
+            tools=[get_weather, save_data],  # Tools this agent can use
+            model=model,                     # Small language model
+            name="weather_assistant"         # Agent identifier
+        )
+
+    def ask_weather(self, city: str):
+        """Agent processes a weather request."""
+        response = self.run(
+            f"Get weather for {city} and save it. "
+            f"Respond with JSON: {{'weather': 'description', 'saved': true/false}}"
+        )
+        return response
+
+# Usage
+agent = WeatherAgent()
+result = agent.ask_weather("New York")
+print(result)  # Agent uses tools automatically to get and save weather
+
+In this demo, let's explore how design becomes code. In this "Antarctic Agents" demo, we're implementing a multi-agent system where penguins request resources from a scientist agent who decides how to distribute them based on history and available supplies.
+
+As you review the code, focus on how we extend the ToolCallingAgent class from the smolagents framework to create specialized agents. Notice how the PenguinAgent class uses LLM-powered decision-making to generate requests, while the ScientistAgent uses tools to check history and make informed distribution decisions.
+
+
+## From: lesson-2-multi-agent-architecture-implementation/demo/demo.py
+
+class PenguinAgent(ToolCallingAgent):
+    def **init**(self, name: str, initial_food: int = 0, initial_has_tool: bool = False) -> None:
+        super().**init**(tools=[], model=model, name=name, description=f"A penguin named {name}")
+        self.name = name
+        self.food = initial_food
+        self.has_toy = initial_has_tool
+
+def take_action(self) -> Dict[str, Any]:
+    prompt = f"""
+    You are Penguin {self.name}.
+    Your current state: Food: {self.food}, Has Toy: {self.has_toy}.
+
+    Decide what to request from the scientist for this round:
+    1. Request some food.
+    2. Request a tool.
+
+    State your request naturally.
+    """
+
+    final_llm_text_response = self.run(prompt)
+    # Parse LLM response to determine request type
+    # ...
+    return action_result
+
+class ScientistAgent(ToolCallingAgent):
+    def **init**(self, initial_food_supply: int = 20, refresh_interval: int = 5) -> None:
+        super().**init**(
+            tools=[check_history, record_distribution],
+            model=model,
+            name="scientist",
+            description="A scientist responding to penguin actions"
+        )
+        self.food_supply = initial_food_supply
+        self.toy_available = True
+
+def respond_to_action(self, penguin: 'PenguinAgent', penguin_action_details: Dict[str, Any]) -> None:
+    # Check penguin's history using the check_history tool
+    current_penguin_history = check_history(penguin.name)
+
+    prompt = f"""
+    You are the Scientist. Respond to penguin {penguin.name}'s request.
+    Penguin {penguin.name} requested: {json.dumps(penguin_action_details)}
+    Recorded history: {json.dumps(current_penguin_history)}.
+    Your available resources: Food Supply: {self.food_supply}, Toy Available: {self.toy_available}.
+
+    You MUST use the 'record_distribution' tool to log your decision.
+    """
+
+    self.run(prompt)  # LLM decides and calls record_distribution tool
+    # Apply constraints and update actual state
+    # ...
+This code demonstrates the core concept of implementation using a modern agentic framework. We define specialized agent classes that extend ToolCallingAgent, giving them LLM-powered decision-making capabilities. The PenguinAgent uses natural language to express needs, while the ScientistAgent uses tools (check_history and record_distribution) to make informed, stateful decisions about resource allocation.
+
+Each agent maintains its own state (food, has_toy, food_supply) and uses prompts to guide the LLM's behavior, demonstrating how agents can collaborate intelligently while operating independently.
+Exercise: Implementing Multi-Agent Architecture - Antarctic Agents
+Lesson
+Downloads
+Cloud Resources
+Implement a tool that allows penguin agents to find their own food and craft prompts that guide their decision-making in a multi-agent system.
+
+Part 1: Implement the find_food Tool
+Open starter.py in lesson-2-multi-agent-architecture-implementation/exercises/starter
+
+Find the find_food function with the @tool decorator
+
+Implement the logic:
+
+If method is "foraging" (case-insensitive) → return random int between 0-3
+If method is "fishing" (case-insensitive) → return random int between 2-7
+Otherwise → return 0
+Hint: Use random.randint(a, b) and .lower() for case handling
+
+Part 2: Complete the Penguin Prompt
+In the PenguinAgent.take_action() method, find the prompt variable
+
+Complete the prompt to guide the LLM:
+
+Explain the three action options clearly
+Guide when to use find_food tool (specify method parameter: "fishing" or "foraging")
+Guide when to request food or toys via text
+Encourage smart decisions based on current state
+Decision-making suggestions:
+
+Low food (0-1) → prefer fishing (higher yield)
+Moderate food → try foraging
+Need toy → request from scientist
+Running Your Code
+python lesson-2-multi-agent-architecture-implementation/exercises/starter/starter.py
+Expected Output
+Success indicators:
+
+Penguins call find_food with valid methods
+Correct food amounts (0-3 foraging, 2-7 fishing)
+Context-aware decisions based on penguin state
+Mix of self-sufficiency and scientist requests
+Common issues:
+
+Always requesting from scientist → strengthen self-sufficiency in prompt
+find_food returns 0 → check implementation
+Tool not called → clarify tool usage in prompt
+Missing method parameter → specify in prompt
+The core of this exercise was to give the PenguinAgent a new tool and the logic to use it, moving from a design idea to a functional AI agent using the smolagents library.
+
+Solution Explanation
+First, you implemented find_food not as a class method, but as a standalone function decorated with @tool. This allows the Language Model (LLM) to understand the function's purpose, arguments, and return values. The logic here provides the agent with specific capabilities ("fishing" or "foraging") to solve the productive struggle of gathering resources independently.
+
+# From: lesson-2-multi-agent-architecture-implementation/exercises/solution/solution.py
+def find_food(method: str) -> int:
+    """
+    Penguin finds food. Returns amount found (int).
+    Args:
+        method (str): Method ("fishing" or "foraging").
+    Returns:
+        int: The amount of food found.
+    """
+    food_found = 0
+    if method.lower() == "foraging":
+        food_found = random.randint(0, 3)
+    elif method.lower() == "fishing":
+        food_found = random.randint(2, 7)
+    return food_found
+Next, you integrated this tool into the agent's decision-making process within the PenguinAgent class. Instead of writing hardcoded if/else logic for hunger, you initialized the agent as a ToolCallingAgent and passed find_food into its list of tools.
+
+
+
+Crucially, the logic is now driven by a prompt within the take_action method. You provide the agent with its current state (self.food) and instruct it on how to choose between using the tool or communicating with the Scientist.
+
+
+
+From: lesson-2-multi-agent-architecture-implementation/exercises/solution/solution.py
+def run(self):
+    """
+    The main loop for the penguin agent.
+    """
+    if self.is_hungry:
+        print(f"{self.name} is hungry and is going to eat.")
+        self.find_food() # Call the new tool
+        self.is_hungry = False
+    else:
+        print(f"{self.name} is not hungry.")
+
+
+By adding find_food to the tools list and describing it in the prompt, you've implemented an autonomous decision-making process. The agent now perceives its state (via the prompt string), reasons about its needs, and decides whether to trigger the find_food tool or generate a text response to the scientist.

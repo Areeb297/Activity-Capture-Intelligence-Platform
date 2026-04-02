@@ -1,0 +1,2629 @@
+Henrique Santana is a Principal Machine Learning Engineer at Dell Technologies, specializing in AI implementation for digital businesses. With a strong background in Problem Solving with Data, he has extensive experience in data engineering, AI operations, and the development of autonomous AI agents. He is also a professor in MBA programs, teaching AI for business leaders. Passionate about technology, he explores Generative AI, LLM frameworks, and emerging AI architectures.
+
+Overview
+This course is designed to equip you with the knowledge and skills to develop intelligent AI agents that can interact with the real world, manage their internal processes, access and utilize diverse data sources, and continuously improve their performance.
+
+Course Topics
+Extending Agents with Tools
+Understanding how LLM-based agents utilize external tools to broaden their capabilities and interact with real-world systems.
+Learning how tools empower agents to perform actions (e.g., check weather, query databases, perform calculations) beyond generating text.
+Exploring Function Calling as a dependable method for models to determine when and how to employ tools, ensuring structured outputs for external actions.
+Structured Outputs
+Producing structured, machine-readable outputs (e.g., JSON) for subsequent processing.
+Recognizing the importance of structured outputs for initiating code, APIs, and other agents, moving beyond free-form text.
+Utilizing Pydantic models in Python to define data schemas and enforce type validation for reliable outputs.
+Agent State Management
+Introducing the concept of state as internal context that exists solely during a single agent execution.
+Understanding that while LLMs are inherently stateless, agents require temporary state to handle complexity and monitor progress during a task.
+Employing state machines as a clear, modular approach to managing this internal state, ensuring predictable and testable execution.
+Short-Term Memory
+Enabling agents to recall interactions across multiple turns within the same session (thread).
+Learning that memory is an abstraction achieved by feeding previous interactions back into the agent's prompt to maintain context.
+Exploring strategies such as conversation history, sliding windows, and simple summarization, balancing context with token costs and performance.
+External APIs
+Applying external API integrations to extend agent functionality and incorporate live data into agent workflows.
+Understanding that APIs act as the link between an agent's reasoning and the external environment, facilitating real-world actions.
+Addressing challenges associated with external APIs, including authentication, non-determinism, and the necessity for robust error handling and observability.
+Web Search Agents
+Developing an agent capable of performing web searches via an API and integrating the results into LLM responses.
+Recognizing that web search grants agents access to real-time, unstructured data, counteracting hallucinations by grounding responses in verifiable evidence.
+Focusing on effectively interpreting raw search results, filtering relevant information, and citing sources.
+Interacting with Databases
+Developing an agent that interacts with databases to retrieve and update structured information.
+Understanding how agents can engage with relational (SQL), NoSQL, and vector databases.
+Learning about Text2SQL agents that convert natural language into database queries, and the role of vector databases in semantic search for "similar meaning" queries.
+Agentic RAG
+Building a basic RAG agent that operates autonomously, retrieving relevant documents and generating an answer.
+Exploring how Agentic RAG goes beyond static retrieval by allowing agents to reason about retrieved content, reflect, and attempt again if necessary.
+Understanding that this approach involves planning, evaluating retrieved information, reformulating queries, and adapting strategies for dynamic retrieval.
+Long-Term Memory
+Constructing an agent that retains information across different sessions.
+Learning how long-term memory enables agents to personalize interactions, avoid repetition, and improve through experience over time.
+Considering semantic (facts), episodic (experiences), and procedural (behavior) memory, along with aspects of storage, retrieval, privacy, and relevance.
+Evaluating Agents
+Evaluating the performance of AI agents across various dimensions, from final outputs to internal reasoning steps.
+
+Giving AI Agents the Power to Act with Tools
+Language models are strong at reasoning, but without tools, they can only talk—not act. Tools extend an agent’s capabilities beyond text, allowing it to interact with real-world systems like APIs, databases, and mathematical engines.
+
+Tools function like a utility belt for agents. Without access to tools, an agent can't check real-time data like the weather, do precise calculations, or retrieve company records. It might guess or hallucinate. With tools, agents can reliably perform tasks and fetch accurate, up-to-date information.
+
+Common types of tools include:
+
+Web search APIs to answer real-time questions
+Math functions to ensure precision in calculations
+APIs and webhooks to access services like Slack, CRMs, or travel systems
+Databases (SQL/NoSQL) to store or retrieve structured data
+Code execution (e.g., Python) for transformations, automation, or logic
+Early tool integrations used prompt-based cues like “Calling calculator with X and Y,” followed by backend parsing. This approach was fragile and easy to break. A more reliable method is Function Calling, where tools are formally defined and models are trained to use them correctly.
+
+To enable Function Calling, two components are needed:
+
+A model trained to recognize tool-use situations, fill in arguments, and format calls in structured JSON.
+An API that can detect and handle tool calls, returning the result to the model.
+For example, when a user asks, “What’s the weather in São Paulo?”, the model sends a tool_call to get_weather(city="Sao Paulo"). The backend retrieves the data, returns the result, and the model incorporates it into a natural reply.
+
+More advanced developments are emerging. OpenAI’s Operator, Anthropic’s Model Context Protocol (MCP), and Google’s Agent-to-Agent (A2A) initiative aim to standardize how tools are accessed and how agents communicate across systems. These trends point toward a future of collaborative, multi-agent systems where each agent specializes in a task.
+
+In summary:
+
+Tools turn agents from passive responders into active problem-solvers.
+Function Calling connects language models to actions.
+Standardized protocols are paving the way for coordinated, multi-agent systems.
+
+What happens when an LLM decides to use a function during a conversation? With function calling, the model doesn’t execute the function itself — it tells your application what to call and with which inputs, and your backend runs it.
+
+This demonstration focuses on applying the concepts of function calling using the OpenAI SDK. The goal is to showcase how to enhance an AI's capabilities by integrating tools, specifically through a weather-checking example. This practical application will illustrate the interaction between a user and an AI agent, highlighting the flow of messages and tool usage. The demonstration will also cover how to create and use tools with AI, providing a complete flow of an AI agent using tools.
+
+Overview
+The demonstration will cover the following steps:
+
+Basic Interaction with Language Models: Understanding how to communicate with the AI in simple and structured ways.
+Building an AI Tool: Creating a tool that allows the AI to fetch weather information.
+Using the Tool in Conversations: Implementing the tool within a conversation to provide accurate responses.
+Step-by-Step Instructions
+1. Basic Interaction with Language Models
+Single-Turn Query:
+Use the invoke method to send a simple question to the AI.
+Example: response = chat_model.invoke("What is an AI Agent?")
+Multi-Turn Conversation:
+Structure a conversation by defining roles for the AI and the user.
+Example:
+messages = [
+  SystemMessage(content="You're an OpenAI API specialist"),
+  UserMessage(content="What is Function Calling?")
+]
+response = chat_model.invoke(messages)
+2. Building an AI Tool
+Define the Tool:
+Use the @tool decorator to create a function that retrieves weather data.
+Ensure the function has clear documentation and typed parameters.
+Example:
+@tool
+def get_weather(city: str):
+  """Get the current temperature for a city."""
+  ...
+Mock Weather Data:
+For demonstration purposes, create a dictionary with mock weather data.
+Example:
+mock_weather = {
+  "São Paulo": "28°C",
+  "Oslo": "-3°C",
+  "New York": "15°C",
+  "Tokyo": "22°C"
+}
+Bind the Tool to the LLM:
+Create an instance of the LLM that includes the weather tool.
+Example: chat_model_with_tools = LLM(tools=[get_weather])
+3. Using the Tool in Conversations
+Set Up the Conversation:
+Define the system message to instruct the AI on how to use the weather tool.
+Example:
+messages = [
+  SystemMessage(content="You are a helpful assistant that can access a tool to get current temperature for cities."),
+  UserMessage(content="How cold is it in Oslo?")
+]
+Invoke the AI with Tool Usage:
+The AI recognizes the need to use the weather tool and makes a tool call.
+Example:
+ai_message = chat_model_with_tools.invoke(messages)
+Extract Tool Call Information:
+Retrieve the tool call ID and arguments from the AI's response.
+Example:
+tool_call_id = messages[-1].tool_calls[0].id
+args = json.loads(messages[-1].tool_calls[0].function.arguments)
+Execute the Tool:
+Call the weather function with the extracted arguments.
+Example: tool_result = get_weather(**args)
+Create a Tool Response Message:
+Formulate a response message from the tool's result.
+Example:
+tool_message = ToolMessage(content=tool_result["temperature"], tool_call_id=tool_call_id, name="get_weather")
+Final AI Response:
+Allow the AI to generate a final response based on the tool's output.
+Example:
+ai_message = chat_model_with_tools.invoke(messages)
+Takeaways
+Understanding how to interact with Language Models is crucial for effective AI communication.
+Building tools enhances the capabilities of AI, allowing it to perform specific tasks.
+The flow of messages and tool usage is essential for creating a seamless user experience with AI.
+Consider how integrating tools, like the weather-fetching function, can enhance AI interactions. Reflect on your experience using these tools and how they impacted the communication flow with the AI.
+In this hands-on exercise, the focus will be on building an AI agent that can utilize various tools to enhance its functionality. This exercise will provide an opportunity to apply skills learned in previous concepts, such as understanding how to create and manage an agent that can intelligently decide when to use its available tools. By the end of this exercise, the agent will be capable of answering programming questions, executing code snippets, looking up documentation, performing calculations, and searching through codebases.
+
+Prerequisites
+Python programming language
+Libraries: typing, dotenv, json
+Objectives:
+By the end of this exercise, learners will be able to:
+
+Create an AI agent that can process user messages and utilize tools effectively
+Implement a calculator tool and a data analysis tool within the agent
+Test the agent's functionality with various scenarios to ensure it operates as expected
+Steps:
+Set Up the Workspace
+
+Open the classroom workspace provided for this exercise.
+Ensure that all necessary libraries are installed and available in the environment.
+Import Required Libraries
+
+At the beginning of your code, import the necessary libraries:
+from typing import List, Dict, Any
+from dotenv import load_dotenv
+from copy import deepcopy
+import json
+from lib.messages import UserMessage, SystemMessage, ToolMessage
+from lib.tooling import tool
+from lib.llm import LLM
+Define the Agent Class
+
+Create a class named Agent that will handle user interactions and tool usage.
+Implement the __init__ method to initialize the agent with a role, instructions, model, temperature, and tools.
+Implement the invoke method to process user messages and return responses.
+Implement Tool Functionality
+
+Create a calculator tool using the @tool decorator:
+@tool
+def calculate(expression: str) -> float:
+return eval(expression)
+- Create a data analysis tool to retrieve game statistics:
+@tool
+def get_games(num_games:int=1, top:bool=True) -> str:
+# Implementation details
+Test the Agent
+
+Instantiate the agent with the role of "Coding Assistant" and test it with a simple query:
+agent = Agent(role="Coding Assistant")
+response = agent.invoke("What is Python? Be concise")
+print(response)
+- Test the calculator tool by creating an agent with the calculator tool and executing a calculation:
+math_agent = Agent(role="Math Assistant", tools=[calculate])
+response = math_agent.invoke("What is 23 * 45?")
+print(response)
+- Test the data analysis tool by creating an agent with the data analysis tool and querying game statistics:
+data_analyst_agent = Agent(role="Game Stats Assistant", tools=[get_games])
+response = data_analyst_agent.invoke("What's the best game in the dataset?")
+print(response)
+Explore Multiple Tool Usage
+
+Test the agent's ability to handle multiple tool calls by asking complex questions that require using both tools:
+response = data_analyst_agent.invoke("If I multiply 3 by 5, what do I get? Then later add 7")
+print(response)
+
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries. This includes libraries for handling messages and tools, as well as loading environment variables.
+
+from typing import List, Any
+from dotenv import load_dotenv
+import json
+
+from lib.messages import UserMessage, SystemMessage, ToolMessage
+from lib.tooling import tool
+from lib.llm import LLM
+2. Understand the Components
+Familiarize with the key components that will be used in building the agent:
+
+LLM: The language model wrapper that manages tool execution.
+SystemMessage: Defines the agent's role and behavior.
+UserMessage: Represents inputs from users.
+ToolMessage: Contains results from tool executions.
+tool: A decorator for creating tools.
+3. Build the Agent Class
+Create an Agent class that can:
+
+Initialize with a specific role and tools.
+Process user messages.
+Decide when to use tools.
+Handle responses from tools.
+Here is the structure of the Agent class:
+
+class Agent:
+    """An AI Agent that can use tools to help answer questions"""
+
+    def __init__(self, role: str = "Personal Assistant", instructions: str = "Help users with any question", model: str = "gpt-4o-mini", temperature: float = 0.0, tools: List[Any] = None):
+        """Initialize the agent with its configuration and tools"""
+        self.model = model
+        self.role = role
+        self.instructions = instructions
+        self.tools = tools
+        load_dotenv()
+        self.llm = LLM(model=model, temperature=temperature, tools=tools)
+
+    def invoke(self, user_message: str) -> str:
+        """Process a user message and return a response"""
+        messages = [SystemMessage(content=f"You're an AI Agent and your role is {self.role}. Your instructions: {self.instructions}")]
+        messages.append(UserMessage(content=user_message))
+        ai_message = self.llm.invoke(messages)
+        messages.append(ai_message)
+
+        while ai_message.tool_calls:
+            for call in ai_message.tool_calls:
+                function_name = call.function.name
+                function_args = json.loads(call.function.arguments)
+                tool_call_id = call.id
+                tool = next((t for t in self.tools if t.name == function_name), None)
+                if tool:
+                    result = tool(**function_args)
+                    messages.append(ToolMessage(content=json.dumps(result), tool_call_id=tool_call_id, name=function_name))
+            ai_message = self.llm.invoke(messages)
+            messages.append(ai_message)
+
+        for m in messages:
+            print(m)
+        return ai_message.content
+4. Testing the Agent
+Once the Agent class is implemented, it is important to test it with various scenarios:
+
+Basic Conversation: Test the agent's ability to respond to simple queries without using tools.
+agent = Agent(role="Coding Assistant")
+response = agent.invoke("What is Python? Be concise")
+print(response)
+Calculator Tool: Create a tool for performing calculations and test the agent's ability to use it.
+@tool
+def calculate(expression: str) -> float:
+    """Evaluate a mathematical expression"""
+    return eval(expression)
+
+math_agent = Agent(role="Math Assistant", tools=[calculate])
+response = math_agent.invoke("What is 23 * 45?")
+print(response)
+Data Analyst Tool: Create a tool to analyze game data and test the agent's responses.
+@tool
+def get_games(num_games:int=1, top:bool=True) -> str:
+    """Returns the top or bottom N games with highest or lowest scores."""
+    # Game data and sorting logic
+    ...
+
+data_analyst_agent = Agent(role="Game Stats Assistant", instructions="You can bring insights about a game dataset based on users questions", tools=[get_games])
+response = data_analyst_agent.invoke("What's the best game in the dataset?")
+print(response)
+Key Takeaway
+Building an AI agent that can utilize tools effectively enhances its ability to respond to user queries and perform complex tasks. Understanding how to implement and test these tools is crucial for developing a robust AI assistant.
+
+Creating an AI agent that can intelligently decide when to use tools is essential for building a smart coding assistant. This agent will be capable of answering programming questions, executing code snippets, looking up documentation, performing calculations, and searching through codebases. The following instructions will guide through the process of building this agent step-by-step.
+
+Now, let's learn how to make your agent speak in a language that most developers love.Structured machine readable outputs like JSON. Why does this matter?Imagine your agent generates a meeting summary. That's cool.But imagine if it could also return structured action items with deadlines,owners, and priorities.Now, that's powerful.Say you're building an assistant that listens tocustomer support calls and generates a ticket summary.You don't want just plain text,you probably want to identify the issue type,the urgency, and the customer's e mail address.That structure is gold.Why? Because you can plug it into a downstream system,ticketing, dashboards, alerts, you name it.Free form text is great for humans.But if your output needs to trigger code,APIs, or other agents,it had better be structured.You could try doing this with pure prompting.Return the answer as JSON with fields,issue type, urgency, customer email.Sometimes it works, but sometimes you get completely nonsensical results likeurgency equals to very or an error for the email address like none found.See the problem?When our code goes to use this output,it will cost all kinds of errors.LLMs are good at text, not rules.We need something stronger.That's where output parsers come in.Some providers like OpenAI and Google providea lightweight way to enforce structure by inputting a schema.If the model agrees to use a format,you can parse it or get an error you can handle.It can get better if you use function calling.There, the output must follow a schema.You define a JSON schema for the tool,and the model generates a function call object that fits it.It's like giving the model a form to fill,and it's surprisingly good at it.Now let's zoom into the kinds of data we want to structure.Strings and numbers easy.But what about a Boolean, date time,or nested objects,or a list of tasks each with a title status and due date.This is where the power of data modeling comes in.We're not just generating JSON,we're generating typed JSON.For that, we have one of the best tools in Python, Pydantic.Pydantic lets you define a data schema in Python code using classes.Think of it like a blueprint for valid outputs.For example, we could create an action item schema.Which has a title that must be a string,a date time object for its due date,a string for the owner, and a status which has to be either open or closed.Pydantic doesn't just structure data, it validates it.It gives your agent a contract,here's what you must produce.By now, it's clear that agents aren't perfect.Sometimes they'll hallucinate or return malformed data,but output parsers help us avoid those problems.You pass the schema to your output parser.The model generates something.If it parses, great.If it fails, you can retry with a clarification prompt,rephrase or use a fallback tool,or log the error for debugging.Don't assume perfection, design for resilience.Structured outputs are the foundation of reliable actionable AI systems.They let agents integrate into workflows,trigger real-world actions, power, downstream automation.With Pydantic output parsers and function calling,you'll transform your agent from a talker to a doer.
+Structured Outputs: Making AI Responses Actionable
+Agents are more powerful when they return structured, machine-readable outputs like JSON instead of just plain text. Structured responses allow agents to integrate with other systems, power automation, and trigger actions in workflows. For example, rather than summarizing a customer call in text, an agent can extract structured fields like:
+
+{
+  "issue_type": "login_problem",
+  "urgency": "high",
+  "customer_email": "jane@mail.com"
+}
+This format can be directly used in ticketing systems, dashboards, or alerts. Free-form text may be readable, but structured data is what enables downstream tools to act.
+
+Why Prompting Isn’t Enough
+A common early method was to prompt the model to output JSON, such as: “Return the answer as JSON with fields: issue_type, urgency, customer_email.” While this sometimes works, models often return vague or invalid data, like "urgency": "very" or "email": "none found", which causes errors when code tries to use it. LLMs are trained for natural language, not strict type rules.
+
+Output Parsers and Function Calling
+To improve reliability, output parsers can validate whether the model's response conforms to a defined schema. If valid, the output is parsed; if not, fallback strategies can be applied.
+
+Function calling provides an even more robust solution. Here, the model is given a JSON schema and asked to call a specific function. The model must output a structured function call object that matches the schema. This guarantees correct format and types, turning the model into something more predictable and usable in software systems.
+
+Modeling Complex Data with Pydantic
+When dealing with more complex outputs—like lists of tasks or nested objects—typed JSON becomes essential. Python’s Pydantic library enables schema enforcement through class definitions. For example:
+
+class ActionItem(BaseModel):
+  title: str
+  due_date: datetime
+  owner: str
+  status: Literal["open", "closed"]
+This ensures that agents generate only valid outputs. If the model's response fails validation, the system can retry, rephrase the request, or handle the error safely.
+
+Designing for Reliability
+Agents aren’t perfect and may return malformed data. Structured output mechanisms help catch and manage these errors. Using output parsers, schemas, and retry logic builds resilience into AI systems.
+
+Structured outputs are foundational for agents that do more than talk. They enable integration, automation, and reliability—turning language models into powerful components of real-world workflows.
+
+Question 1 of 2
+Why are structured outputs important when building LLM-based agents?
+
+Exactly! Structured outputs like JSON let agents integrate into workflows, power automations, and avoid brittle free-text parsing.
+
+
+
+
+
+
+
+Question 2 of 2
+Why is relying solely on prompting to structure agent output considered fragile?
+Correct! Prompting alone doesn’t guarantee structure. If the model drifts from the format — like saying "urgency": "very" — your system might crash or behave unexpectedly.
+This demonstration showcases how to effectively apply the concepts of structured outputs using Pydantic and the OpenAI SDK. The focus will be on parsing outputs from a Language Model (LLM) and ensuring data integrity through type validation.
+
+
+
+The demonstration will cover the following topics:
+
+Basic string output parsing
+Utilizing tools for structured outputs
+Implementing Pydantic models for type validation
+Understanding different parser types and their applications
+Step-by-Step Instructions
+1. Setup Environment
+Begin by setting up the environment and importing necessary libraries. Ensure that the .env file is loaded to access any required environment variables.
+
+from typing import Annotated
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+from lib.messages import UserMessage, SystemMessage
+from lib.tooling import tool
+from lib.llm import LLM
+from lib.parsers import (
+    StrOutputParser,
+    JsonOutputParser, 
+    PydanticOutputParser, 
+    ToolOutputParser,
+)
+
+load_dotenv()
+
+chat_model = LLM()
+2. Basic String Output Parsing
+Start with a simple example to understand how to parse string outputs from the LLM. This step demonstrates the most basic form of output handling.
+
+messages = [
+    SystemMessage(content="Extract the event information."),
+    UserMessage(content="Alice and Bob are going to a science fair on Friday.")
+]
+
+ai_message = chat_model.invoke(messages)
+parser = StrOutputParser()
+parsed_output = parser.parse(ai_message)
+print(parsed_output)
+3. Working with Tools for Structured Outputs
+Next, utilize tools to enforce a specific output format. This approach simplifies programmatic processing of the LLM's responses.
+
+@tool
+def calendar_event(name: str, date: str, participants: list[str]):
+    """Identify name of the event, date when it will happen and all the participants"""
+    return {
+        "name": name,
+        "date": date,
+        "participants": participants
+    }
+
+chat_model_with_tools = LLM(tools=[calendar_event])
+ai_message = chat_model_with_tools.invoke(messages)
+parser = ToolOutputParser()
+structured_output = parser.parse(ai_message)[0]["args"]
+4. Using Pydantic Models for Validation
+Implement Pydantic models to validate and structure the outputs from the LLM. This step ensures type safety and data integrity.
+
+class CalendarEvent(BaseModel):
+    """A Pydantic model representing a calendar event."""
+    name: Annotated[str, Field(description="Name/Title of the event. Defaults to ''", default=None)]
+    date: Annotated[str, Field(description="Date of the event. Defaults to ''", default=None)]
+    participants: Annotated[list[str], Field(description="Who will participate. Defaults to ''", default=None)]
+
+ai_message = chat_model.invoke(input=messages, response_format=CalendarEvent)
+parser = JsonOutputParser()
+json_output = parser.parse(ai_message)
+
+parser = PydanticOutputParser(model_class=CalendarEvent)
+event: CalendarEvent = parser.parse(ai_message)
+5. Accessing Parsed Data
+Finally, access the structured data from the validated Pydantic model.
+
+participants = event.participants
+print(participants)
+Summary of Steps
+Set up the environment and import necessary libraries.
+Parse basic string outputs from the LLM.
+Use tools to create structured outputs.
+Implement Pydantic models for validation and type safety.
+Access and utilize the structured data from the Pydantic model.
+Key Takeaways
+Understanding how to parse outputs from LLMs is crucial for effective data handling.
+Tools can enforce specific output formats, making it easier to work with LLM responses.
+Pydantic models provide a robust way to validate and structure data, ensuring type safety.
+Different parsers serve unique purposes and can be selected based on the output format needed.
+
+Exactly! Pydantic acts like a blueprint for your agent’s output. It enforces the expected structure and types, making it easier to catch and recover from errors.
+Exercise: Output structured Agent responses
+Lesson
+Downloads
+Cloud Resources
+In this hands-on exercise, learners will enhance an AI agent to provide structured outputs using Pydantic models. This exercise focuses on ensuring that the agent's responses are consistent, validated, and easily usable in downstream applications. By applying the skills and concepts learned in previous sections, learners will create structured output formats, parse and validate responses, and return data in a consistent JSON format. The task involves defining a Pydantic model for structured tasks, such as summarizing a meeting with action items, and building a bridge from language to logic.
+
+Prerequisites:
+Python programming language
+Pydantic library
+Objectives:
+By the end of this exercise, learners will be able to:
+
+Define structured output formats using Pydantic models
+Enhance an existing agent class to support structured outputs
+Validate and parse responses to ensure they meet defined formats
+Steps:
+Set Up the Workspace
+Open the classroom workspace provided for this exercise.
+Ensure all necessary libraries are installed, including Pydantic.
+Import Required Libraries
+At the beginning of your code, import the necessary libraries:
+from typing import List, Any
+from pydantic import BaseModel, Field
+import json
+Define Pydantic Models
+Create a Pydantic model for action items. Include fields for task, assignee, and due date.
+class ActionItem(BaseModel):
+task: str = Field(..., description="Task description")
+assignee: str = Field(..., description="Person responsible for the task")
+due_date: str = Field(..., description="Due date for the task")
+Create a Pydantic model for meeting summaries. Include fields for title, date, participants, key points, and action items.
+class MeetingSummary(BaseModel):
+title: str
+date: str
+participants: List[str]
+key_points: List[str]
+action_items: List[ActionItem]
+Enhance the Agent Class
+Create a new class called StructuredAgent that inherits from the existing Agent class.
+Initialize the agent with role, instructions, model, temperature, tools, and output model.
+Implement the invoke method to process user messages and return structured responses.
+Test the Enhanced Agent
+Create an instance of the StructuredAgent using the MeetingSummary model.
+Prepare a sample meeting transcript and invoke the agent to generate a summary.
+meeting_agent = StructuredAgent(
+role="Meeting Assistant",
+instructions="Summarize meetings and track action items in a structured format",
+output_model=MeetingSummary
+)
+meeting_transcript = "..."
+summary = meeting_agent.invoke(meeting_transcript)
+print(json.dumps(summary, indent=2))
+Validate the Output
+Create an instance of MeetingSummary using the output from the agent.
+Access and print structured data to verify that it matches the expected format.
+validated_summary = MeetingSummary(**summary)
+print("Meeting Title:", validated_summary.title)
+Takeaways
+Understanding how to define and use Pydantic models for structured data.
+Ability to enhance existing classes to support structured outputs.
+Skills in validating and parsing data to ensure compliance with defined formats.
+
+The solution involves creating a structured output format for the AI agent using Pydantic models. This approach allows for the validation of responses and ensures that the data returned is in a consistent JSON format. The following steps outline the process of enhancing the existing Agent class to support structured outputs.
+
+Step-by-Step Instructions
+Import Necessary Libraries Begin by importing the required libraries for the implementation:
+from typing import List, Any, Annotated
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+import json
+Define Structured Output Models Create Pydantic models to represent the structured output. For example, define a model for action items and a model for meeting summaries:
+class ActionItem(BaseModel):
+task: Annotated[str, Field(description="The task to be completed")]
+assignee: Annotated[str, Field(description="Person responsible for the task")]
+due_date: Annotated[str, Field(description="When the task should be completed")]
+class MeetingSummary(BaseModel): title: Annotated[str, Field(description="Title of the meeting")] date: Annotated[str, Field(description="Date when the meeting occurred")] participants: Annotated[List[str], Field(description="List of meeting attendees")] key_points: Annotated[List[str], Field(description="Main points discussed in the meeting")] action_items: Annotated[List[ActionItem], Field(description="List of action items from the meeting")]
+
+
+1. **Enhance the Agent Class**
+Create a new class, `StructuredAgent`, that extends the functionality of the existing Agent class. This class will utilize the defined Pydantic models for structured outputs:
+```python
+class StructuredAgent:
+    def __init__(self, role: str, instructions: str, model: str, temperature: float, tools: List[Any], output_model: BaseModel):
+        self.model = model
+        self.role = role
+        self.instructions = instructions
+        self.tools = tools
+        self.output_model = output_model
+        load_dotenv()
+        self.llm = LLM(model=model, temperature=temperature, tools=tools)
+
+    def invoke(self, user_message: str) -> dict:
+        messages = [SystemMessage(content=f"You're an AI Agent and your role is {self.role}. Your instructions: {self.instructions}")]
+        messages.append(UserMessage(content=user_message))
+        if self.output_model:
+            ai_message = self.llm.invoke(input=messages, response_format=self.output_model)
+            parser = JsonOutputParser()
+            return parser.parse(ai_message)
+        else:
+            ai_message = self.llm.invoke(messages)
+            return {"response": ai_message.content}
+Test the Structured Agent Create an instance of the StructuredAgent class and test it with a sample meeting transcript:
+meeting_agent = StructuredAgent(
+role="Meeting Assistant",
+instructions="Summarize meetings and track action items in a structured format",
+output_model=MeetingSummary
+)
+
+meeting_transcript = """
+Project Planning Meeting - March 15, 2024
+Attendees: John, Sarah, Mike
+Discussion:
+
+* Reviewed Q1 project timeline
+* Discussed resource allocation
+* Identified potential risks
+Next steps:
+* John will update the project plan by next Friday
+* Sarah needs to coordinate with the design team by Wednesday
+* Mike will prepare the risk assessment document by end of month
+"""
+
+summary = meeting_agent.invoke(meeting_transcript)
+print(json.dumps(summary, indent=2))
+Validate the Output Ensure that the output matches the structure defined by the Pydantic model:
+validated_summary = MeetingSummary(**summary)
+print("Meeting Title:", validated_summary.title)
+print("\nParticipants:")
+for participant in validated_summary.participants:
+    print(f"- {participant}")
+print("\nAction Items:")
+for item in validated_summary.action_items:
+    print(f"- {item.task} (Assigned to: {item.assignee}, Due: {item.due_date})")
+Key Takeaway
+Utilizing Pydantic models for structured outputs ensures that the data returned by the AI agent is consistent and validated, making it easier to work with in various applications.
+
+This section focuses on enhancing an AI agent to provide structured outputs using Pydantic models. The goal is to ensure that the agent's responses are consistent, validated, and easily usable in downstream applications. By implementing structured output formats, the agent can effectively summarize meetings and track action items in a clear and organized manner. The exercise involves defining a Pydantic model for a structured task, parsing the LLM response, and returning the response in a JSON format.
+
+
+
+         ● No, that's not how it works. It's not a "generate then check and retry" loop.                                                                                                                                                                                                                                                                                                                                                                                   
+  It's more like a maze with walls                                                                                                                                                                                               
+  
+  Imagine the LLM is walking through a maze. Normally (without structured outputs), it can go in any direction — left, right, up, down. It might produce JSON, might produce plain text, might produce garbage.                                                                                                                                                                                                                                                   
+  With structured outputs, walls are placed before the LLM takes each step. It can only walk in directions that lead to valid JSON.
+
+  WITHOUT structured outputs (no walls):
+    Token 1: "The"  "{"  "Hello"  "123"  ...    → any of 50,000+ tokens
+
+  WITH structured outputs (walls up):
+    Token 1: "{"                                  → only valid option
+    Token 2: "name"  "title"  "date"              → only keys from your schema
+    Token 3: ":"                                   → only valid option
+    ...
+
+  It's NOT this (retry loop):
+
+  LLM generates: {"name": "Areeb", age: 25}     ← invalid (missing quotes)
+  System checks: ❌ bad JSON
+  System says:   "try again"
+  LLM generates: {"name": "Areeb", "age": 25}   ← valid
+  System checks: ✅
+
+  ❌ THIS IS NOT HOW IT WORKS
+
+  It IS this (constrained at generation time):
+
+  LLM about to pick token 1:
+    System: "You MUST output '{' — nothing else is allowed"
+    LLM picks: {
+
+  LLM about to pick token 2:
+    System: "Schema has keys: name, date, participants — pick one"
+    LLM picks: "name"
+
+  LLM about to pick token 3:
+    System: "After a key, you MUST output ':'"
+    LLM picks: :
+
+  LLM about to pick token 4:
+    System: "Schema says 'name' is a string — you MUST start with a quote"
+    LLM picks: "
+
+  LLM about to pick token 5:
+    System: "You're inside a string — any text is fine"
+    LLM picks: Areeb
+
+  ...and so on for every single token
+
+  The invalid tokens are removed from the menu before the LLM picks. It never gets the chance to make a mistake. There's no retry, no checking after the fact. The guardrails are applied during generation, not after.
+
+  That's why it's called constrained decoding — the decoding (token picking) process itself is constrained.
+
+● Here's what the official OpenAI documentation confirms:                                                                                                                                                                                                                                                                                                                                                                                                         
+  ---                                                                                                                                                                                                                              What the docs say (verified)
+                                                                                                                                                                                                                                 
+  1. It IS guaranteed                                                                                                                                                                                                            
+
+  From OpenAI's docs:
+
+  "Structured Outputs is the evolution of JSON mode. While both ensure valid JSON is produced, only Structured Outputs ensure schema adherence."
+
+  "strict: true tells the API to ensure the model returns output that strictly adheres to your provided JSON schema structure, guaranteeing format compliance across all model responses."
+
+  So yes — it is guaranteed. Not "usually works" or "best effort". Guaranteed.
+
+  2. How it works — Constrained Decoding / Context-Free Grammars
+
+  The docs reference context-free grammars (CFGs) as the mechanism. Here's how it works at the token generation level:
+
+  Normal LLM generation:
+    Each token → pick from ALL possible tokens (50,000+)
+
+  With structured outputs:
+    Each token → only tokens that keep the output
+                 valid according to the schema are allowed
+
+  At every step of generation, OpenAI's system checks: "Given the schema and what's been generated so far, which tokens are legal next?" Illegal tokens get blocked before they can be selected.
+
+  For example, with schema {"type": "object", "properties": {"name": {"type": "string"}}}:
+
+  Token 1:  Must be {           → everything else blocked
+  Token 2:  Must be "name"      → other keys blocked
+  Token 3:  Must be :           → everything else blocked
+  Token 4:  Must be "           → number/bool blocked (schema says string)
+  Token 5+: Any string content  → free to generate
+  Token N:  Must close with }   → forced when all required fields filled
+
+  3. The key setting: strict: true
+
+  This is what activates the guarantee. When you set strict: true + additionalProperties: false, the model cannot produce:
+  - Invalid JSON syntax
+  - Missing required fields
+  - Wrong types (string where number expected)
+  - Extra fields not in the schema
+
+  So my earlier explanation was correct
+
+  The LLM generates JSON directly from the start — there's no "text then convert" step. The schema constrains which tokens are valid at each generation step using grammar-based rules, making invalid output structurally       
+  impossible.
+Let's talk about how agents can manage what's happening under the hood, the state.LLMs by default are stateless.They don't remember anything between prompts.Each interaction is a blank slate.But real world tasks often need context.What tool did I use?What step of I in? What was the last message?Let's start simply. A stateless system doesn't keep track of what happened before.Every interaction stands alone.That's how most LLMs work.You sent a prompt, it replies. That's it.If you ask about past interactions,it won't remember anything about them.A stateful system keeps track of what it's doing.It carries an idea of history,at least for the duration of a task.Think of an online checkout process.You're shopping, and you add items to your cart that the system remembers.Then you go to checkout,where it uses those items in the cart to calculate the total.This system maintains a state containing information about your selected items,where you are in the shopping process,and your payment information.Agents need stateful execution to manage complexity,especially when decisions are chained together.In the context of LLM-based agents,state refers to everything the agent needs to track as it works through a task.That can include the original user query, the system instructions,a list of conversation messages,pending tool calls, or intermediate results.Importantly, the state lives only during execution.Once the task is done,the state is gone,unless you choose to persist it.But this is a conversation for the future.We can call this behavior an ephemeral state,and it's perfect for agents that need to focus on details of their current execution,not remember those details long term.To manage state, we use a classic concept from computing, the state machine.A state machine is just a system that moves between well defined steps,updating internal variables as it goes.Each step does something,such as preparing messages,calling a large language model,executing tools, or deciding the next step.In our case, each step in the workflow receivesa state object and returns an updated version of that state.The transitions between steps can be conditional,depending on what's inside that state.It's predictable, it's testable,and it's exactly what we need.Let's walk through what happens during an agent's execution.The user query triggers the process,then the agent starts with an empty state and begins a loop over receiving the state,taking a step, and generating a new state.Each step adds or modifies data within the state.It works like this, the user sends a query,the agent starts with an empty state,the system message and user message are combined into a prompt,the prompt is sent to the LLM,which generates a response,and then we check whether the LLM chose to call tools.If it did, we execute the tools,add the result to the state,and go back to the LLM to get a new response.Otherwise, we provide a final message and terminate.This is not long term memory,it's more like working memory,what the agent needs to solve the task in front of it.How do we define this state?We can use a simple type system,like a typed dictionary in Python.A typical schema might include the user_query, instructions,a list representing the message history,and possibly a list of tool calls the agent has selected.Every step in the state machine accepts and returns an object matching this schema.This ensures the data flows clearly from one part of the agent to another.The cool part is that transitions between steps can be dynamic.Usually, we want to run the tool step only if the agent has selected tools to run.You can write a function that checks the current state and chooses the next step.That function would update the state with the results of any tools called,so the next step gets that information to perform its task.This allows your agent to make decisions about its own process.It's a lightweight form of self awareness.Here's what we've discussed: LLMs are stateless,but agents need state to manage execution.A state machine provides a clean,modular way to manage this.Agent state can include messages,tools, and task context.State exists only during execution then disappears.This is the foundation of intelligent behavior.By structuring workflows as state machines,you make agents more deterministic, debuggable, and reliable.
+
+
+Exactly! State management is what lets an agent keep track of tools it called, messages it exchanged, and where it is in the task flow.This demonstration focuses on applying state machine concepts to manage workflows effectively. State machines provide a structured way to handle various states and transitions, making it easier to control the flow of data and logic in applications. The following steps will illustrate how to create a state machine, define its states, and manage transitions between those states using Python code. Key concepts such as basic state machine implementation, workflow steps, state transitions, and data flow will be covered.
+
+This demonstration focuses on applying state machine concepts to manage workflows effectively. State machines provide a structured way to handle various states and transitions, making it easier to control the flow of data and logic in applications. The following steps will illustrate how to create a state machine, define its states, and manage transitions between those states using Python code. Key concepts such as basic state machine implementation, workflow steps, state transitions, and data flow will be covered.
+
+
+
+
+Steps
+1. Setup the Environment
+Begin by importing the necessary libraries and defining the state schema. This schema outlines the structure of the state that will be managed by the state machine.
+
+from typing import TypedDict
+from lib.state_machine import (
+      StateMachine,
+      Step,
+      EntryPoint,
+      Termination,
+)
+2. Define the State Schema
+Create a schema that defines the attributes of the state. For example, a simple schema can include an input and an output value.
+
+class Schema(TypedDict):
+      input: int
+      output: int
+3. Create the State Machine Instance
+Instantiate the state machine using the defined schema.
+
+workflow = StateMachine(Schema)
+4. Define the Logic for Steps
+Create functions that define the logic for each step in the workflow. Each function takes the current state as input and returns an updated state.
+
+def step_input(state: Schema) -> Schema:
+      return {"output": state["input"] + 1}
+
+def step_double(state: Schema) -> Schema:
+      return {"output": state["output"] * 2}
+5. Create and Connect Steps
+Define the entry point, steps, and termination for the workflow. Connect these components to establish the flow of the state machine.
+
+entry = EntryPoint()
+s1 = Step("input", step_input)
+s2 = Step("double", step_double)
+termination = Termination()
+
+workflow.add_steps([entry, s1, s2, termination])
+workflow.connect(entry, s1)
+workflow.connect(s1, s2)
+workflow.connect(s2, termination)
+6. Run the Workflow
+Initialize the state and run the workflow. The output will show the results of the state transitions.
+
+initial_state = {"input": 4}
+run_object = workflow.run(initial_state)
+7. Advanced State Management: Routing and Loops
+Explore more complex patterns by introducing conditional routing and loops. Define a new schema for a counter-based workflow.
+
+class CounterSchema(TypedDict):
+      count: int
+      max_value: int
+8. Define Counter Logic
+Create a function to increment the counter and define the entry point, increment step, and termination.
+
+def increment_counter(state: CounterSchema) -> CounterSchema:
+      return {"count": state["count"] + 1}
+
+entry = EntryPoint()
+increment = Step("increment", increment_counter)
+termination = Termination()
+9. Implement Router Logic
+Create a function to determine the next step based on the counter value. This function will control the flow of the workflow based on conditions.
+
+def check_counter(state: CounterSchema) -> Step:
+      if state["count"] >= state["max_value"]:
+          return termination
+      return increment
+10. Connect Steps with a Loop
+Connect the entry point to the increment step and establish a loop that allows the workflow to continue until the termination condition is met.
+
+workflow.connect(entry, increment)
+workflow.connect(increment, [increment, termination], check_counter)
+11. Run the Counter Workflow
+Initialize the counter state and run the workflow to observe the transitions.
+
+initial_state = {"count": 0, "max_value": 3}
+run_object = workflow.run(initial_state)
+Summary
+This demonstration illustrated how to create and manage state machines using Python. The following steps were covered:
+
+Setting up the environment and defining the state schema.
+Creating a state machine instance and defining the logic for steps.
+Connecting steps to establish the workflow.
+Running the workflow and observing state transitions.
+Implementing advanced state management techniques, including routing and loops.
+Takeaways
+State machines provide a structured approach to manage workflows and transitions.
+Defining clear schemas and step functions is crucial for effective state management.
+Advanced techniques like routing and loops enhance the flexibility of state machines.
+Observing state transitions helps in understanding the flow of data and logic in applications.
+
+
+In this hands-on exercise, the focus will be on building an agent that manages a multi-step workflow using a state machine. This exercise will reinforce the concepts learned about state machines and their application in managing workflows. By defining a custom state schema, implementing step logic, and connecting these steps, the agent will be able to process user input through various transformations.
+
+Prerequisites:
+Python programming language
+Libraries: typing, json, dotenv
+Familiarity with state machines and basic programming concepts
+Objectives:
+By the end of this exercise, the following skills will be developed:
+
+Define a state schema for managing agent states
+Implement multiple step functions for processing workflows
+Connect steps to create a cohesive workflow with conditional routing and looping
+Steps:
+Set Up the Workspace
+Access the classroom workspace provided for this exercise.
+Ensure all necessary libraries are installed and available in the environment.
+Configure Cloud Credentials
+If using a cloud platform, follow the instructions to set up and configure cloud credentials.
+Ensure access to any required APIs or services.
+Define the State Schema
+Create a TypedDict to represent the agent’s state. Include fields for:
+user_query: The input from the user.
+instructions: Guidance for the agent.
+messages: A history of messages exchanged.
+current_tool_calls: Any pending tool calls.
+Implement Step Functions
+Create the following functions:
+Prepare Messages Step: This function should build the message list for the LLM using the user_query and instructions.
+LLM Step: This function should call the language model and check for tool calls, appending the AI's response to the messages list.
+Tool Step: This function should execute any pending tool calls and update the state accordingly.
+Build and Connect the State Machine
+Initialize the state machine with the defined AgentState.
+Add the steps to the workflow using workflow.add_steps().
+Connect the steps with appropriate transitions:
+From the entry point to the message preparation step.
+From the message preparation step to the LLM step.
+Implement conditional routing to determine if tool calls are present.
+Create looping logic to return to the LLM step after executing tools.
+Run the Workflow
+Initialize the state with a sample user query.
+Execute the workflow and inspect the state transitions and messages generated.
+Test with different queries to observe how the agent adapts.
+Optional Enhancements
+Create an Agent class to encapsulate the state machine logic.
+Experiment by adding more tools and testing various user queries to see how the workflow changes.
+Takeaways
+Understanding of how to define and manage agent states using a state machine.
+Ability to implement step functions that interact with a language model and execute tool calls.
+Experience in connecting steps to create a dynamic workflow that can adapt to user input.
+Please do not upload sensitive information to
+
+The implementation of an agent state with a task flow involves creating a structured approach to handle user queries and execute tasks based on those queries. This solution leverages a state machine to manage the transitions between different steps in the workflow. Each step is responsible for a specific part of the process, ensuring that the agent can respond accurately and efficiently.
+
+
+Step-by-Step Instructions
+1. Define the State Schema
+Create a TypedDict to represent the agent's state. This schema includes fields for the user query, instructions, message history, and any pending tool calls.
+
+class AgentState(TypedDict):
+    user_query: str
+    instructions: str
+    messages: List[dict]
+    current_tool_calls: Optional[List[ToolCall]]
+2. Implement Step Functions
+Define the functions for each step in the workflow:
+
+Prepare Messages Step: This function assembles the conversation history and context for the language model (LLM).
+def prepare_messages_step(state: AgentState) -> AgentState:
+    messages = [
+        SystemMessage(content=state["instructions"]),
+        UserMessage(content=state["user_query"])
+    ]
+    return {
+        "messages": messages
+    }
+LLM Step: This function processes the current state through the LLM and checks for tool calls.
+def llm_step(state: AgentState) -> AgentState:
+    llm = LLM(model="gpt-4o-mini", temperature=0.3, tools=tools)
+    response = llm.invoke(state["messages"])
+    tool_calls = response.tool_calls if response.tool_calls else None
+    ai_message = AIMessage(content=response.content, tool_calls=tool_calls)
+    return {
+        "messages": state["messages"] + [ai_message],
+        "current_tool_calls": tool_calls
+    }
+Tool Step: This function executes any pending tool calls and updates the state with the results.
+def tool_step(state: AgentState) -> AgentState:
+    tool_calls = state["current_tool_calls"] or []
+    tool_messages = []
+
+    for call in tool_calls:
+        function_name = call.function.name
+        function_args = json.loads(call.function.arguments)
+        tool_call_id = call.id
+        tool = next((t for t in tools if t.name == function_name), None)
+        if tool:
+            result = tool(**function_args)
+            tool_messages.append(
+                ToolMessage(content=json.dumps(result), tool_call_id=tool_call_id, name=function_name)
+            )
+
+    return {
+        "messages": state["messages"] + tool_messages,
+        "current_tool_calls": None
+    }
+3. Build and Connect the State Machine
+Create the state machine and connect the steps with appropriate transitions.
+
+workflow = StateMachine[AgentState](AgentState)
+
+entry = EntryPoint[AgentState]()
+message_prep = Step[AgentState]("message_prep", prepare_messages_step)
+llm_processor = Step[AgentState]("llm_processor", llm_step)
+tool_executor = Step[AgentState]("tool_executor", tool_step)
+termination = Termination[AgentState]()
+
+workflow.add_steps([entry, message_prep, llm_processor, tool_executor, termination])
+4. Add Transitions
+Define the transitions between steps, including conditional routing based on whether tool calls are present.
+
+def check_tool_calls(state: AgentState) -> Union[Step[AgentState], str]:
+    if state.get("current_tool_calls"):
+        return tool_executor
+    return termination
+
+workflow.connect(entry, message_prep)
+workflow.connect(message_prep, llm_processor)
+workflow.connect(llm_processor, [tool_executor, termination], check_tool_calls)
+workflow.connect(tool_executor, llm_processor)
+5. Run the Workflow
+Initialize the agent state and run the workflow with a sample input.
+
+initial_state: AgentState = {
+    "user_query": "What's the best game in the dataset?",
+    "instructions": "You can bring insights about a game dataset based on users questions",
+    "messages": [],
+}
+
+run_object = workflow.run(initial_state)
+Summary
+The implementation of an agent state with a task flow involves defining a structured state schema, creating step functions for processing user input, and connecting these steps within a state machine. This approach allows for efficient handling of multi-step workflows, enabling the agent to respond to user queries effectively.
+
+Key Takeaways
+A well-defined state schema is crucial for managing the agent's state.
+Each step in the workflow should have a clear purpose and logic.
+Conditional routing and looping are essential for creating dynamic workflows that adapt to user input.
+
+Exactly! State is like the local "working memory" of a task, while session memory captures the broader conversation history and decisions made during the session.Giving Agents a Sense of Continuity with Short-Term Memory
+LLMs are naturally stateless—they don’t remember past prompts or conversations unless that context is explicitly included. For agents to feel coherent and intelligent, they need a simulated form of memory that helps them maintain context throughout an interaction. This is where short-term memory comes into play.
+
+Memory Is a Simulation
+Agents don’t have real memory. What looks like memory is actually constructed by including previous interactions in the current prompt. This creates the illusion of continuity. The agent doesn’t remember; it’s simply reminded.
+
+Ephemeral vs. Durable Memory
+There are two main types of memory:
+
+Ephemeral (In-application): Exists only during the session. Once the interaction ends, the memory disappears. This is useful for short-term context and is the focus of this discussion.
+Durable (Persisted): Stored in databases or vector stores and available across sessions or days. This enables long-term memory but is not covered here.
+Short-Term vs. Long-Term Memory
+Short-term memory is like a live conversation—tracking what was just said and building on it. Long-term memory is broader, like remembering past conversations or facts shared across sessions. This module emphasizes short-term memory: maintaining context during a single thread of interaction.
+
+Strategies for Simulating Short-Term Memory
+Full Conversation History: Send all previous messages with each new input. Maintains full detail but consumes many tokens.
+Sliding Window: Include only the most recent messages. Reduces token load but may lose earlier context.
+Summarization: Condense earlier messages into a compact summary. Efficient but relies on effective summarization techniques.
+Each method balances context preservation with efficiency. Larger prompts can exceed the model’s context window or lead to slower and costlier responses.
+
+State vs. Session Memory
+State refers to transient execution information—what the agent is doing right now. It disappears once the task ends.
+
+Session memory covers the broader conversation, tracking tools used, decisions made, and prior responses across steps. While state helps with immediate logic, memory helps the agent act coherently over time.
+
+Why Memory Matters
+Short-term memory is what makes agents feel responsive and intelligent. It allows agents to:
+
+Understand ongoing conversations
+Track context across tool calls
+Reflect on earlier messages
+Without memory, agents reset with every prompt. With memory, they feel like assistants capable of maintaining a meaningful dialogue.Let's talk about memory, not human memory,but how agents can maintain a sense of context during an interaction.By now, you probably know that LLMs,by default, are stateless.They don't remember anything between props unless you tell them.Each time you send a message,it's like meeting them for the very first time.But agents often need a sense of continuity. What were we talking about?What tool did I just used last?What was my last answer?That's where short-term memory comes into play. First, let's be clear.Memory in large language models isn't like human memory.It's not something the model inherently has.Instead, it's an illusion we create.We simulate memory by feeding the agent's previous interactions back into its prompt.The agent doesn't remember anything by itself.We build the story and remind it who it's talking to.There are a couple of ways we can approach memory in agents.Sometimes, memory only exists inside the application.Meaning it lives just during that user session.When the session ends, that memory vanishes.We call this ephemeral memory.Other times we choose to persist memory.We save it somewhere, a database,a file, a vector store,so that the agent can reference it even days later.That's durable memory.In this module, we're focusing onshort term ephemeral memory that lives inside a single session.It's all about keeping agents coherent while they're working on a task.Think of short term memory like a conversation with a friend at a coffee shop.You remember what you just said,what the other person said, and you build on it.For agents with short term memory,they store what's been said inthe current conversation or in the last few steps of the same thread or session.Long term memory, though,would be like not only remembering that conversation while it's going on,but also recalling it when you run into that friend a month later.Long term memory means recalling facts or events from many past conversations,even from different days.For example, applications likeChatGPT can recall specific characteristics about the user,like their name or job,even if it was mentioned in another thread or session.For now, we care about the right now memory,keeping the current thread alive across several back and forth interactions.When it comes to simulating memory,there are a few simple strategies.One way is to keep the entire conversational history.Every time you send a message to the model,you include all previous user inputs and agent replies.It's simple, but can get heavy fast.Another strategy is a sliding window.Instead of sending the whole conversation,you only send the last few messages.That keeps things light and still gives enough context.A third option is summarization.Instead of carrying every word,you summarize past exchanges into a short compact form.This gives the model just enough to stay coherent without overwhelming it.Each method has its trade offs.Full history preserves the most detail,but costs more tokens.Sliding windows are cheaper,but may lose important context.Summarization is efficient, but requires good summarization techniques.As you can imagine, pretending an agent has memory isn't perfect.The model has a limited context window,a maximum number of tokens it can handle at once.If you feed too much memory, you'll hit that limit,and even before you hit it,more tokens means higher costs and slower responses.Plus, gigantic prompts can sometimes confuse the model rather than helping it.Building memory systems is always about balance,enough context to be useful,but not so much that it backfires.Here's an important distinction.State is not the same thing as session memory.State is information that the agent uses internally to move between steps.It's like a set of execution variables.Here's what I'm working on right now.State is local and disappears when the task ends.Session memory on the other hand, is broader.It covers history over multiple steps.It keeps track of the conversation,the tools used, and what's happened so far in the interaction.In other words, you can use memory to store states fromdifferent runs and group them with the same session ID or thread ID.When you think of memory, think bigger than just state.Memory is the agent's sense of where it's beenduring the whole session. Why does it matter?Simple. Maintaining context across steps is what makes agents feel smart.Without memory, every response would be disconnected.It would be like texting someone who forgets everything you said previously.With memory, agents can remember what you said earlier,carry information across tool calls,and even reflect on their own previous answers.That's what turns a tool usingagent into something that feels more like a real assistant.
+
+When we talk about memory in the context of agentic sytems, we often categorize it into three types: State, Short-term memory, and Long-term memory. It’s common to assume these refer to specific durations of time — but in reality, the distinction is more about scope and context, not just how long the information is stored.
+
+Let’s break down each one:
+
+State
+The state of an agent refers to everything it knows during one execution. This includes intermediate decisions, tool calls, environment data, and transition snapshots as the agent moves through a task.
+
+Key idea: State is ephemeral — it exists only for the duration of the execution.
+Example: An agent answering a user question may keep track of which parts of the document it's consulted so far. That’s execution state.
+Grid diagram showing how data accumulates over transitions and context in an agent’s run; each row represents increasing context for a given run_id, and each column represents sequential transitions, with the top-right corner labeled as a snapshot of the agent’s full state.
+State: Context vs Transitions
+
+Short-term Memory
+Short-term memory allows the agent to maintain coherence and context across multiple executions within a single session. It helps the agent remember past interactions while the user is still engaged, without preserving full execution state.
+
+Scoped by: Typically a session ID.
+Used for: Dialogue continuity, task follow-up, context threading.
+Example: In a multi-turn conversation, the agent remembers what was asked in previous turns and can reference earlier parts of the discussion.
+Grid diagram showing how an agent’s state evolves with each execution within a session; each row adds more context (as states) to form short-term memory, and each column represents sequential executions, capturing progressively richer state representations.
+Short-Term Memory: Context vs Executions
+
+Long-Term Memory: Memory Across Sessions
+Long-term memory persists key information across sessions and executions, often personalized to the user. It doesn’t retain every detail, but stores essential facts, preferences, and experiences to support personalization and learning over time.
+
+Scoped by: Typically a user ID.
+Used for: Personalization, knowledge accumulation, remembering user goals and behaviors.
+Example: The agent recalls that the user prefers concise summaries or that they’re working on a project about climate policy.
+Grid diagram illustrating how an agent builds long-term memory over multiple sessions for a given user_id; each row adds contextual info, and each column represents a session, with the top-right cells labeled as ‘Preference’ to indicate accumulated user preferences over time.
+Long-Term Memory: Context vs Sessions
+Steps to Implement Short-Term Memory
+1. Setup Environment
+Begin by setting up the environment and loading necessary libraries. Use the following code to load environment variables and initialize the short-term memory:
+
+from dotenv import load_dotenv
+from lib.memory import ShortTermMemory
+from lib.messages import UserMessage, SystemMessage, AIMessage, BaseMessage
+from lib.llm import LLM
+
+load_dotenv()
+
+memory = ShortTermMemory()
+2. Create the ChatBot Class
+Define a ChatBot class that will handle conversation flow and memory integration. This class will utilize the short-term memory to manage user interactions.
+
+class ChatBot:
+    def __init__(self):
+        self.chat_model = LLM()
+
+    def chat(self, message:str, memory:ShortTermMemory, session_id:str=None):
+        user_message = UserMessage(content=message)
+        memory.add(user_message, session_id)
+        messages = memory.get_all_objects(session_id)
+        ai_message = self.chat_model.invoke(messages)
+        memory.add(ai_message, session_id)
+        return ai_message.content
+3. Create Conversation Personas
+Football Commentator Persona
+Create a session for the football commentator.
+Define the commentator's voice using a SystemMessage.
+Add the voice to memory.
+memory.create_session("football_commentator")
+
+football_commentator_voice = SystemMessage(
+    content= (
+        "You are a dramatic Premier League football commentator. " 
+        "Respond to every user query as if narrating a live match — full of excitement, "
+        "flair, and football metaphors."
+    )
+)
+
+memory.add(football_commentator_voice, "football_commentator")
+Use the chatbot to respond to a user query.
+chat_bot.chat(
+    message="What's stoicism?", 
+    memory=memory, 
+    session_id="football_commentator"
+)
+GPS Navigation Persona
+Create a session for GPS navigation.
+Define the GPS voice using a SystemMessage.
+Add the voice to memory.
+memory.create_session("gps_navigation")
+
+gps_navigation_voice = SystemMessage(
+    content= (
+        "You are a GPS navigation voice. Respond as if you're giving driving directions. "
+        "Use phrases like 'In 300 meters, turn left,' or 'Recalculating route…'."
+    )
+)
+
+memory.add(gps_navigation_voice, "gps_navigation")
+Use the chatbot to respond to a user query.
+chat_bot.chat(
+    message="What's stoicism?", 
+    memory=memory, 
+    session_id="gps_navigation"
+)
+4. Default Session
+The chatbot can also handle queries without a specific persona. This allows for a more general response.
+
+chat_bot.chat(
+    message="What's stoicism?", 
+    memory=memory, 
+)
+5. Additional Memory Management Methods
+Utilize additional methods for managing memory:
+
+pop(): Remove the last message from memory.
+memory.pop()
+reset(): Clear all sessions and messages.
+memory.reset()
+delete(): Remove specific sessions from memory.
+memory.delete_session("gps_navigation")
+memory.delete_session("football_commentator")
+Summary
+This demonstration illustrated how to implement short-term memory in AI conversations. The following steps were covered:
+
+Setting up the environment and initializing short-term memory.
+Creating a ChatBot class to manage conversation flow.
+Defining and utilizing different personas, such as a football commentator and a GPS navigation system.
+Managing memory with additional methods for effective conversation handling.
+Takeaways
+Short-term memory enhances AI interactions by maintaining context.
+Different personas can be created to tailor responses based on user queries.
+Memory management methods allow for flexibility in handling conversations and sessions.
+Understanding how to manage multiple conversation sessions is essential for creating dynamic AI interactions. This demonstration focuses on implementing short-term memory in AI conversations. Short-term memory allows AI agents to maintain context, enabling more coherent and contextual interactions. The demonstration will showcase practical examples, including a football commentator and a GPS navigation system, to illustrate how to manage conversation sessions and personas effectively. Understanding short-term memory is crucial for managing multiple conversation sessions and implementing different conversation personas while maintaining context across interactions.This exercise focuses on enhancing an agent's capabilities by incorporating short-term memory. Unlike state, which is temporary and specific to a single run, memory allows the agent to retain information across multiple interactions. This enables the agent to maintain context and continuity, making conversations more coherent and meaningful. Short-term memory is essential for agents to simulate a sense of continuity during interactions, allowing them to remember previous exchanges and maintain a coherent dialogue.
+
+Objectives
+Understand the distinction between state and memory.
+Utilize the ShortTermMemory class to manage session memory.
+Implement an Agent class that:
+Accepts a session_id for each interaction.
+Stores state in memory under the appropriate session.
+Retrieves session history to provide context for new queries.
+Demonstrate the agent's ability to continue conversations across multiple interactions.
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries and loading environment variables:
+
+from typing import TypedDict, List, Optional, Union
+import json
+from dotenv import load_dotenv
+
+from lib.state_machine import StateMachine, Step, EntryPoint, Termination, Run
+from lib.llm import LLM
+from lib.messages import AIMessage, UserMessage, SystemMessage, ToolMessage, BaseMessage
+from lib.tooling import Tool, ToolCall, tool
+from lib.memory import ShortTermMemory
+
+load_dotenv()
+2. Define the Agent State Schema
+Create a TypedDict to represent the agent's state, including fields for user queries, instructions, message history, pending tool calls, and session identifiers:
+
+class AgentState(TypedDict):
+    user_query: str
+    instructions: str
+    messages: List[dict]
+    current_tool_calls: Optional[List[ToolCall]]
+    session_id: str
+3. Create the MemoryAgent Class
+Define the MemoryAgent class, initializing it with model name, instructions, tools, and temperature. Include memory and state machine initialization:
+
+class MemoryAgent:
+    def __init__(self, model_name: str, instructions: str, tools: List[Tool] = None, temperature: float = 0.7):
+        self.instructions = instructions
+        self.tools = tools if tools else []
+        self.model_name = model_name
+        self.temperature = temperature
+        
+        # Initialize memory and state machine
+        self.memory = ShortTermMemory()
+        self.workflow = self._create_state_machine()
+4. Implement State Machine Steps
+Define the steps for message preparation, LLM processing, and tool execution:
+
+Prepare Messages Step: Prepares messages for LLM consumption.
+LLM Step: Processes the current state through the LLM.
+Tool Step: Executes any pending tool calls.
+5. Create the State Machine
+Set up the internal state machine for the agent, defining entry points, steps, and transitions:
+
+def _create_state_machine(self) -> StateMachine[AgentState]:
+    machine = StateMachine[AgentState](AgentState)
+    
+    entry = EntryPoint[AgentState]()
+    message_prep = Step[AgentState]("message_prep", self._prepare_messages_step)
+    llm_processor = Step[AgentState]("llm_processor", self._llm_step)
+    tool_executor = Step[AgentState]("tool_executor", self._tool_step)
+    termination = Termination[AgentState]()
+    
+    machine.add_steps([entry, message_prep, llm_processor, tool_executor, termination])
+    
+    machine.connect(entry, message_prep)
+    machine.connect(message_prep, llm_processor)
+    
+    def check_tool_calls(state: AgentState) -> Union[Step[AgentState], str]:
+        if state.get("current_tool_calls"):
+            return tool_executor
+        return termination
+    
+    machine.connect(llm_processor, [tool_executor, termination], check_tool_calls)
+    machine.connect(tool_executor, llm_processor)
+    
+    return machine
+6. Implement the Invoke Method
+Create the invoke method to run the agent on a user query, managing session history and storing the complete run object in memory:
+
+def invoke(self, query: str, session_id: Optional[str] = None) -> Run:
+    session_id = session_id or "default"
+    
+    previous_messages = []
+    last_run: Run = self.memory.get_last_object(session_id)
+    if last_run:
+        last_state = last_run.get_final_state()
+        if last_state:
+            previous_messages = last_state["messages"]
+
+    initial_state: AgentState = {
+        "user_query": query,
+        "instructions": self.instructions,
+        "messages": previous_messages,
+        "current_tool_calls": None,
+        "session_id": session_id,
+    }
+
+    run_object = self.workflow.run(initial_state)
+    
+    return run_object
+7. Define Tools and Instantiate the Agent
+Define any tools needed for the agent and create an instance of MemoryAgent:
+
+@tool
+def get_games(num_games:int=1, top:bool=True) -> str:
+    # Function implementation here
+
+tools = [get_games]
+
+agent = MemoryAgent(
+    model_name="gpt-4o-mini",
+    instructions="You can bring insights about a game dataset based on users questions",
+    tools=tools
+)
+8. Run the Agent
+Invoke the agent with different session IDs to demonstrate memory functionality. Display messages for each interaction.
+
+Takeaways
+Short-term memory enables continuity in conversations.
+Understanding the difference between state and memory is crucial for effective agent design.
+Implementing memory management enhances the agent's ability to interact meaningfully with users.This solution walkthrough focuses on enhancing an agent's capabilities by integrating short-term memory. This memory allows the agent to retain information across multiple interactions, creating a more coherent and context-aware experience for users. Understanding the distinction between state and memory is crucial for implementing this feature effectively.
+
+Key Concepts
+State: Represents the agent's current status during a single interaction. It resets after the interaction ends.
+Memory: Persists across multiple interactions, enabling the agent to recall previous conversations and context.
+Types of Memory:
+In-application (Ephemeral): Memory exists only during a user's session and disappears afterward.
+Persisted (Durable): Memory is saved for future reference, allowing the agent to recall information even after the session ends.
+Short-term vs Long-term Memory: Short-term memory retains context within a single session, while long-term memory recalls information from past sessions.
+Objectives
+Utilize the ShortTermMemory class to manage session memory.
+Implement an Agent class that:
+Accepts a session_id for each interaction.
+Stores state in memory under the appropriate session.
+Retrieves session history to provide context for new queries.
+Demonstrate the agent's ability to maintain a conversation across multiple interactions.
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries and loading environment variables:
+
+from typing import TypedDict, List, Optional, Union
+import json
+from dotenv import load_dotenv
+
+from lib.state_machine import StateMachine, Step, EntryPoint, Termination, Run
+from lib.llm import LLM
+from lib.messages import AIMessage, UserMessage, SystemMessage, ToolMessage, BaseMessage
+from lib.tooling import Tool, ToolCall, tool
+from lib.memory import ShortTermMemory
+
+load_dotenv()
+2. Define the Agent State Schema
+Create a TypedDict to represent the agent's state, which includes:
+
+user_query: The current user query.
+instructions: System instructions for the agent.
+messages: List of conversation messages.
+current_tool_calls: Any pending tool calls.
+session_id: Identifier for memory management.
+class AgentState(TypedDict):
+    user_query: str
+    instructions: str
+    messages: List[dict]
+    current_tool_calls: Optional[List[ToolCall]]
+    session_id: str
+3. Create the MemoryAgent Class
+Define the MemoryAgent class to manage interactions and memory:
+
+class MemoryAgent:
+    def __init__(self, model_name: str, instructions: str, tools: List[Tool] = None, temperature: float = 0.7):
+        self.instructions = instructions
+        self.tools = tools if tools else []
+        self.model_name = model_name
+        self.temperature = temperature
+        self.memory = ShortTermMemory()
+        self.workflow = self._create_state_machine()
+4. Implement State Machine Steps
+Define the steps for processing the agent's state:
+
+Prepare Messages: Prepares messages for the LLM.
+LLM Step: Processes the current state through the LLM.
+Tool Step: Executes any pending tool calls.
+def _prepare_messages_step(self, state: AgentState) -> AgentState:
+    # Logic to prepare messages
+    ...
+
+def _llm_step(self, state: AgentState) -> AgentState:
+    # Logic to process state through LLM
+    ...
+
+def _tool_step(self, state: AgentState) -> AgentState:
+    # Logic to execute tool calls
+    ...
+5. Create the State Machine
+Establish the internal state machine for the agent, defining transitions between steps:
+
+def _create_state_machine(self) -> StateMachine[AgentState]:
+    machine = StateMachine[AgentState](AgentState)
+    # Define steps and transitions
+    ...
+6. Implement the Invoke Method
+Create the invoke method to run the agent on a user query, managing session memory:
+
+def invoke(self, query: str, session_id: Optional[str] = None) -> Run:
+    # Logic to run the agent
+    ...
+7. Define Tools and Instantiate the Agent
+Define any tools the agent will use and create an instance of the MemoryAgent:
+
+@tool
+def get_games(num_games:int=1, top:bool=True) -> str:
+    # Logic to return game data
+    ...
+
+tools = [get_games]
+
+agent = MemoryAgent(
+    model_name="gpt-4o-mini",
+    instructions="You can bring insights about a game dataset based on users questions",
+    tools=tools
+)
+8. Run the Agent
+Demonstrate the agent's functionality by invoking it with user queries across different sessions:
+
+# First interaction
+run1 = agent.invoke("What's the best game in the dataset?", "games")
+
+# Second interaction in the same session
+run2 = agent.invoke("And what was its score?", "games")
+
+# New session interaction
+run3 = agent.invoke("What's the worst game?", "other_session")
+9. Check Session Histories
+Retrieve and display all runs for a specific session to verify memory functionality:
+
+runs = agent.get_session_runs("games")
+for run_object in runs:
+    # Display run details
+    ...
+Summary
+Integrating short-term memory into an agent enhances its ability to maintain context across interactions. By following the outlined steps, an agent can effectively store and retrieve conversation history, leading to a more engaging user experience. This approach lays the groundwork for developing more sophisticated conversational agents capable of remembering user preferences and previous interactions.
+
+Takeaways
+Short-term memory allows agents to remember context across sessions.
+The MemoryAgent class manages state and memory effectively.
+Implementing a state machine facilitates structured processing of user queries.
+Tools can be integrated to enhance the agent's capabilities.
+Understanding the difference between state and session memory is essential for effective implementation.
+Connecting Agents to the Real World with External APIs
+Agents become truly useful when they stop just reasoning and start acting — interacting with real systems like flight booking services, messaging platforms, or financial data feeds. This shift happens through external APIs, which bridge the gap between an agent's internal reasoning and real-world actions.
+
+Why External APIs Matter
+An LLM alone can't access real-time data. Questions like “What’s the cheapest flight to New York this weekend?” require external data sources. Similarly, to send alerts via Slack or trigger actions in other software, agents must call external APIs. These integrations turn agents into doers, capable of meaningful interactions beyond language.
+
+What APIs Really Are
+An API (Application Programming Interface) is a structured way for different software systems to communicate. It’s like placing an order at a restaurant: the agent formats the request, sends it to the API (the kitchen), and receives a response (the meal). Most APIs use HTTP and REST, where the agent sends a request to a URL and receives structured data, often in JSON.
+
+Working with Live Data
+External APIs return dynamic, real-time data. The same request might yield different results depending on when it’s sent. This makes agents more responsive and context-aware, but it also introduces variability. Outputs may change, tests may become unstable, and behaviors may differ across runs. The benefit is usefulness, but at the cost of predictability.
+
+Handling Authentication
+APIs typically require credentials. The simplest form is an API key—a string included in each request. For more secure or user-specific access, OAuth is used. OAuth involves redirecting users to authorize access, receiving a token, and using it securely. Agents interacting with calendars, emails, or sensitive user data must handle authentication correctly.
+
+Dealing with Failures
+API calls can fail for many reasons: timeouts, rate limits, unexpected responses. Agents must be resilient—able to retry, fall back, or escalate issues when something goes wrong. This is where agents grow from scripts into autonomous, fault-tolerant systems.
+
+Ethical and Observability Considerations
+Real-world actions carry risks. An agent might access private data, make purchases, or delete content. That’s why observability is essential—tracking what the agent does, logging actions, and understanding outcomes. Responsible agent design includes safeguards, access controls, and monitoring tools.
+
+Summary
+External APIs give agents access to real-world data and actions.
+APIs transform agents into dynamic, task-capable assistants.
+Authentication, real-time data, and failure handling introduce complexity.
+Ethical design and observability are critical when agents affect real systems.
+Mastering API interaction is a key step in building agents that are not just intelligent, but impactful.
+
+Model Context Protocol (MCP)
+Lesson
+Downloads
+Cloud Resources
+All our agents so far use direct integrations with their tools (like OpenAI Function Calling or simple API wrappers). But as you go deeper in the world of AI agents, it’s important to know about Model Context Protocol (MCP) — because it’s shaping the future of how agents talk to tools.
+
+Why MCP?
+Think about USB-C. Before it came along, every device — phone, camera, laptop — had its own custom cable. Charging and data transfer were clunky, fragile, and inconsistent.
+
+MCP is trying to do for AI tool use what USB-C did for device connections.
+
+Right now, every AI model, agent framework, and API speaks a slightly different "language." If you build an agent that uses one model’s tools, it doesn’t easily work with another model or vendor. Tool use is fragile and non-standard.
+
+MCP provides a universal connector — a standard protocol that makes tool use more:
+
+Consistent across models and vendors
+Composable across tools and agents
+Monitorable and auditable for safety and governance
+Who’s Behind It?
+MCP was proposed and is actively developed by Anthropic, with contributions from the broader open AI community. It’s an open standard, meaning it’s not tied to any one company.
+
+It’s already supported by Anthropic’s Claude models, and other vendors and frameworks (like LangChain and LangGraph) are starting to add support.
+
+How It Works
+At its core, MCP defines a way for models to:
+
+Express tool calls — in a standard message format
+Receive tool results — again, in a standard way
+Stream interactions — so agents can handle multi-step workflows dynamically
+It separates:
+
+The model’s reasoning and intent ("I want to use tool X with arguments Y")
+From the system’s actual execution of tools (calling APIs, handling authentication, retries, logging, etc)
+This makes it much easier to build robust, modular agent systems.
+
+Transport: SSE is Out, Streamable HTTP is In
+Early versions of MCP used Server-Sent Events (SSE) for streaming interactions.
+
+But as of the March 2025 specification(opens in a new tab), Streamable HTTP is the preferred transport:
+
+More flexible
+Better for multimodal content
+Easier to adopt in modern architectures
+If you see older tutorials mentioning SSE, now you know why it’s deprecated.
+
+Why This Matters for You
+Although it's new and not yet supported everywhere, you’ll likely see MCP popping up lots of places. It’s fast becoming the standard for tool-augmented AI. Some places you may see it in the future are:
+
+Custom agents
+Cross-model agents (OpenAI + Anthropic + others)
+Enterprise tool orchestration
+Multi-agent systems
+Summary
+MCP is:
+
+An open protocol for how models use tools
+Inspired by ideas like USB-C: standardizing messy ecosystems
+Designed to make agents more interoperable, flexible, and safe
+Already supported by leading models and frameworks
+You won’t need to implement it today — but keep an eye on it. As agentic architectures mature, MCP (or something like it) will likely be under the hood of many systems you work with.
+
+Steps to Follow
+1. Setup
+Begin by importing the necessary library for making HTTP requests:
+
+import requests
+2. Making GET Requests
+Pokemon Data
+URL: https://pokeapi.co/api/v2/pokemon?limit=151
+Use the following code to fetch data:
+URL = "https://pokeapi.co/api/v2/pokemon?limit=151"
+response = requests.get(url=URL)
+print(response.json())
+random.choice(response.json()['results'])
+Open Weather API
+Base URL: https://api.openweathermap.org/data/2.5/weather
+API Key: Replace with your own API key.
+City: Specify the city for which weather data is needed.
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+API_KEY = "YOUR_API_KEY"
+CITY = "Sao Paulo"
+URL = f"{BASE_URL}?appid={API_KEY}&q={CITY}&units=metric"
+response = requests.get(url=URL)
+print(response.json())
+Exchange Rate API
+Base URL: https://v6.exchangerate-api.com/v6
+API Key: Replace with your own API key.
+Currency: Specify the currency for which exchange rates are needed.
+BASE_URL = "https://v6.exchangerate-api.com/v6"
+API_KEY = "YOUR_API_KEY"
+CURRENCY = "USD"
+URL = f"{BASE_URL}/{API_KEY}/latest/{CURRENCY}"
+response = requests.get(url=URL)
+print(response.json()["conversion_rates"]["BRL"])
+3. Making POST and PUT Requests
+JSON Placeholder API
+Creating a New Resource: Use the following code to create a new post.
+URL = "https://jsonplaceholder.typicode.com/posts"
+DATA = {
+"title": "Building Agents",
+"author": "Henrique Santana",
+}
+response = requests.post(url=URL, data=DATA)
+print(response.json())
+Getting a Resource: Fetch the created post using its ID.
+URL = "https://jsonplaceholder.typicode.com/posts/1"
+response = requests.get(url=URL)
+print(response.json())
+Updating a Resource: Update the existing post with new data.
+URL = "https://jsonplaceholder.typicode.com/posts/1"
+DATA = {
+"title": "New title",
+"body": "New body",
+}
+response = requests.put(url=URL, data=DATA)
+print(response.json())
+Summary
+This demonstration covered the following:
+
+How to set up the environment for making API calls using Python.
+Making GET requests to retrieve data from various APIs, including game data, weather, and exchange rates.
+Making POST requests to create new resources and PUT requests to update existing resources.
+Takeaways
+Understanding how to construct API URLs with parameters.
+Familiarity with handling JSON responses from APIs.
+Ability to perform CRUD operations (Create, Read, Update) using external APIs.
+Importance of API keys for accessing certain APIs and how to include them in requests.
+Awareness of status codes that indicate the success or failure of API requests.
+By practicing these steps, proficiency in working with external APIs will be developed, enabling the integration of various data sources into applications.This demonstration focuses on applying the concepts of working with external APIs. The goal is to provide practical examples of how to make API calls using Python. By the end of this demonstration, understanding of GET, POST, and PUT requests will be enhanced, along with knowledge of how to handle API keys and interpret status codes.Solution: Create an Agent with external API calls enabled
+Lesson
+Downloads
+Cloud Resources
+This solution walkthrough provides a comprehensive view of how to create an agent capable of making external API calls. The agent will gather real-time data and respond based on that information. This solution integrates concepts of state management and memory while ensuring safe and effective API interactions.Overview of the Solution
+The goal is to build an agent that can:
+
+Interact with real APIs to fetch data.
+Handle API responses and errors smoothly.
+Utilize environment variables for API keys to maintain security.
+Process and format the data retrieved from APIs for user-friendly output.
+Implement tools that interact with real APIs.
+Check sessions and snapshots to maintain context.
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries. This includes libraries for handling environment variables, making HTTP requests, and defining the agent's structure.
+
+import os
+from typing import List
+import requests
+from dotenv import load_dotenv
+from lib.agents import Agent
+from lib.messages import BaseMessage
+from lib.tooling import tool
+
+load_dotenv()
+2. Define API Tools
+Create functions that will serve as tools for the agent to interact with various APIs. Below are examples of three tools that can be implemented:
+
+Get Weather: Fetch current weather data for a specified city using the OpenWeather API.
+@tool
+def get_weather(city: str) -> dict:
+API_KEY = os.getenv("OPENWEATHER_API_KEY")
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+params = {
+"q": city,
+"appid": API_KEY,
+"units": "metric"
+}
+
+response = requests.get(BASE_URL, params=params)
+response.raise_for_status()
+return response.json()
+Get Exchange Rate: Retrieve the latest exchange rates from a specified base currency.
+@tool
+def get_exchange_rate(from_currency: str = "USD") -> dict:
+API_KEY = os.getenv("EXCHANGERATE_API_KEY")
+BASE_URL = "https://v6.exchangerate-api.com/v6"
+
+url = f"{BASE_URL}/{API_KEY}/latest/{from_currency}"
+response = requests.get(url)
+response.raise_for_status()
+return response.json()
+Get Pokemon Data: Fetch a random Pokemon's data from the Pokemon API.
+@tool
+def get_random_pokemon() -> dict:
+"""Get a random Pokemon from the original 151"""
+URL = "https://pokeapi.co/api/v2/pokemon?limit=151"
+response = requests.get(URL)
+response.raise_for_status()
+return random.choice(response.json()['results'])
+3. Initialize the Agent
+Create an instance of the agent, specifying its model and instructions. The instructions guide the agent on how to respond to user queries.
+
+agent = Agent(
+model_name="gpt-4o-mini",
+instructions=(
+"You are an assistant that can help with:\n"
+"1. Getting weather information for cities\n"
+"2. Checking currency exchange rates\n"
+"3. Getting a random Pokemon\n"
+"Use the available tools to help answer questions about these topics.\n"
+"Maintain context across conversations within the same session."
+),
+tools=tools
+)
+4. Run the Agent
+Invoke the agent with different queries to see how it interacts with the APIs. Each query will return a response based on the data fetched.
+
+session_id = "external_tools"
+
+run1 = agent.invoke(
+query="What's the weather like in London?", 
+session_id=session_id,
+)
+
+run2 = agent.invoke(
+query="What's the exchange rate from USD to EUR?", 
+session_id=session_id,
+)
+
+run3 = agent.invoke(
+query="Pick one random Pokemon!", 
+session_id=session_id,
+)
+5. Check Session Histories
+Review the session history to see the interactions and responses generated by the agent. This helps in understanding how the agent maintains context across multiple queries.
+
+runs = agent.get_session_runs(session_id)
+for i, run_object in enumerate(runs, 1):
+print(f"\n# Run {i}", run_object.metadata)
+print("Messages:")
+print_messages(run_object.get_final_state()["messages"])
+Summary
+This solution demonstrates how to create an agent that can make external API calls to gather real-time data. By implementing tools for weather, exchange rates, and game data, the agent can provide valuable information to users. The use of environment variables for API keys ensures security, while the structured approach allows for easy expansion and modification of functionalities. The ability to check sessions and snapshots enhances the agent's capability to maintain context.
+
+Key Takeaways
+Understand how to create an agent that interacts with external APIs.
+Learn to handle API responses and errors effectively.
+Utilize environment variables for secure API key management.
+Maintain context across user interactions for a seamless experience.
+Implement tools that interact with real APIs to enhance functionality.Teaching Agents to Search the Web and Stay Grounded
+Not all useful information is accessible through structured APIs. Details about recent product launches, user-reported bugs, or newly published articles often exist only in unstructured web content. To handle this, agents must be able to search the web, interpret results, and ground their responses in external evidence.
+
+Why Use Web Search?
+When asked, “What did Nvidia announce at the last GTC event?”, an agent can’t rely on training data alone—it might be outdated. The answer could be in a news article, press release, or tweet. Instead of hallucinating, the agent can retrieve real-time information by querying a search engine, just like a human would.
+
+Web Search vs. Web Browsing
+It’s important to distinguish between web browsing and web search. This module focuses on web search, not browsing web pages or interacting with dynamic content. Web search means sending a query to a search API (like Google or Bing) and receiving results that include titles, snippets, and URLs.
+
+This lightweight approach allows agents to gather high-level, relevant information quickly and reliably.
+
+Grounding Responses with Evidence
+LLMs tend to produce confident responses, even when they’re incorrect. Web search enables grounding—linking responses to real, verifiable sources. For example, an agent might say, “According to TechCrunch, Nvidia announced a new AI superchip at GTC 2025.” Citing sources builds trust and reduces hallucination.
+
+Common Web Search APIs
+Several search APIs can be integrated with agents:
+
+SerpAPI: Emulates Google searches, includes images, maps, and more.
+
+Tavily: Clean, LLM-optimized content returns.
+
+Bing Search API: Offers robust and scalable access to search data.
+
+Each one delivers structured JSON search results, but the challenge lies in interpreting and using those results effectively.
+
+Making Sense of Results
+Agents must read and evaluate search results to find relevant information. A good agent might:
+
+Read the top few snippets
+
+Select the most relevant one
+
+Summarize it into a response
+
+Cite the source clearly
+
+This process can be guided by prompt engineering—encouraging the agent to use citations, avoid outdated links, or respond only when confident.
+
+Dealing with Noise and Misinformation
+The web isn’t perfect. Results can be misleading, outdated, or irrelevant. This introduces noise into the agent’s decision-making. Builders must design agents to filter information, question sources, and know when to avoid using live search results.
+
+Summary
+Web search capabilities allow agents to:
+
+Access unstructured, real-time information
+
+Ground answers in evidence
+
+Improve relevance and trustworthiness
+
+They also require smart design to handle misinformation, noise, and uncertainty. Agents that search the web aren't just reasoning—they’re researching.
+Not everything has an API that returns nicely structured data as results.Sure weather apps do, so do stock tickers and messaging platforms.But what about a rumor about a product launch or a recent articlepublished on a blog or a forum discussion about a bug someone just discovered?That content isn't neatly packaged into a developer friendly interface.It lives on the web, messy, unstructured,constantly changing, and yet that's exactly where your agent might need to go next.In this module, we'll show you how to build agents that perform web searches,interpret results, and use that information to generate grounded useful responses.We're not talking about hallucination anymore.We're talking about retrieval.Let's say your agent gets this query.What did NVIDIA announce at the latest GTC event?There's no structured API for that.The answer might be in a press release,a news article or a social media post.So instead of relying on its training data,which is probably out of date,your agent can go out and search the web.Just like you would open a search engine type of question, scan a few results,click one or two, and then summarize,we want to give our agent that kind of superpower.Let's clear up a common confusion.When we say web search agent,we're not talking about browsing a site,clicking buttons, and pulling data from tables.That's web browsing, and it's out of the scope of this course.Web search is simpler.It means sending a query to a search engine API and getting back a list of results.Each result typically includes a title,a snippet, a URL,and maybe some metadata.That's the world we're living in here.It's faster, more lightweight,and much more reliable for agents trying to get high level relevant information.By default, LLMs are great at sounding confident.But sometimes they just make stuff up.With web search, your agent doesn't have to invent answers.It can retrieve them.It can ground its response in evidence from live content.Imagine the agent replying,according to Tech Crunch,NVIDIA announced a new AI superchip at GTC 2025.That's not just a better answer,it's a trustworthy one, one that you can fact check.This is what we call grounding.The process of tying model outputs to verifiable sources.It's one of the most effective ways to reduce hallucination and increase user trust.There are several search APIs you can integrate with right now.SerpAPI provides Google like search results and includes extras like images,maps, and even shopping listings.Tavily is a simple LLM friendly API focused on clean and relevant content.Bing from Microsoft offers stable and scalable access to search data.They all follow the same general idea.You send a request and get back a JSON file with search results.But the magic isn't in making the request,it's in how your agent makes sense of the response.The raw search results are just that, raw.They need to be read, filtered, and used.An agent might read the top three snippets,pick one that matches the question best,summarize that content, and then cite the source.Sometimes it needs to discard irrelevant results.Sometimes it needs to merge multiple perspectives,and always it needs to track where its information came from.This is where prompt engineering comes into play again.You can guide the model to answer only when confident,to prefer recent sources,or to output citations with URLs.Web search introduces another new thing into your agent, noise.The Internet isn't a perfect data set.Results might be click bait.Headlines might be misleading.Information might be outdated.Your agent becomes more powerful,but also more vulnerable to confusion.As a builder, it's your job to think critically about which sources to trust,how many results to consider,and when to fall back on a static response instead.This is an opportunity to teachyour agent caution and design your prompts and filters accordingly.Web search gives your agent access to a dynamic,open ended world of knowledge.It fills the gap when no API is available,and it helps your agent stay relevant, grounded, and trustworthy.But it also challenges you,the builder to design smart filters,resilient workflows, and answers you can trust.Now your agent isn't just reasoning, it's researching.internet for current information and compare it with its internal knowledge. This exercise will enhance understanding of how to integrate real-time web data into a language model and critically analyze differences between various sources. By completing this exercise, skills in web search implementation, data parsing, and information extraction will be developed.
+
+Prerequisites:
+Python programming language
+Access to the Tavily API (how to get a Tavily API key(opens in a new tab))
+An IDE or code editor (e.g., VS Code, Jupyter Notebook)
+Basic understanding of APIs and JSON data formats
+Objectives:
+By the end of this exercise, the following abilities will be achieved:
+
+Implement web search functionality using the Tavily API
+Parse and process search results effectively
+Handle different types of queries, such as news, facts, and events
+Extract relevant information from search results and compare it with internal knowledge
+Steps:
+Set Up the Workspace
+Open the classroom workspace provided for this exercise.
+Ensure that all necessary libraries are installed, including dotenv and tavily.
+Configure Cloud Credentials
+Access the cloud console linked in the classroom.
+Retrieve the Tavily API key and set it in the environment variables using the .env file.
+Load the environment variables in the code using load_dotenv().
+Import Required Libraries
+Use the following code to import necessary libraries:
+     import os
+     from datetime import datetime
+     from typing import List, Dict
+     from dotenv import load_dotenv
+     from tavily import TavilyClient
+     from lib.agents import Agent
+     from lib.messages import BaseMessage
+     from lib.tooling import tool
+Initialize the Tavily Client
+Set up the Tavily client with the API key:
+     api_key = os.getenv("TAVILY_API_KEY")
+     client = TavilyClient(api_key=api_key)
+Define the Web Search Tool
+Create a function to perform web searches:
+     @tool
+     def web_search(query: str) -> Dict:
+         return client.search(query)
+Ensure this function returns the search results in a structured format.
+Create Agents
+Define two agents: one that uses only internal knowledge and another that utilizes the web search tool:
+     simple_agent = Agent()
+     web_agent = Agent(tools=[web_search])
+Run the Agents
+Test the agents with various queries. Use the following example queries:
+     run1 = simple_agent.invoke(query="Who won the 2025 Oscar for International Movie?")
+     run2 = web_agent.invoke(query="What are the most recent developments in AI technology?")
+Print the results from both agents to compare their outputs.
+Analyze the Results
+Review the messages generated by each agent. Focus on how the web agent's responses differ from the simple agent's responses.
+Consider the implications of using real-time data versus static knowledge.
+Advanced Modifications (Optional)
+Explore modifying the agents.py file to include:
+A comparison field in the state schema
+A web search step in the workflow
+A comparison step to analyze differences in responses
+Summary
+This exercise provides an opportunity to build a web-aware agent that can search for and analyze current information. By implementing the Tavily API, parsing search results, and comparing them with internal knowledge, valuable skills in data handling and critical analysis are developed. The ability to integrate real-time data into applications is increasingly relevant in various industries, making this exercise a practical application of learned concepts.
+
+Takeaways
+Understanding how to implement web search functionality enhances the capability of language models.
+Real-time data integration allows for more accurate and relevant responses.
+Critical analysis of information from multiple sources is essential for informed decision-making.Solution: Build a web info agent using search results
+Lesson
+Downloads
+Cloud Resources
+This section provides a comprehensive guide to creating a web-aware agent that can search the internet for current information and compare it with its internal knowledge. This exercise enhances the capabilities of a language model by integrating real-time web data and enabling critical analysis of information from various sources.Overview of the Solution
+The solution involves building an agent that can:
+
+Utilize the Tavily API for web searches.
+Effectively parse and process search results.
+Handle various types of queries, including news, facts, and events.
+Extract and present relevant information from the search results.
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries and loading environment variables:
+
+import os
+from datetime import datetime
+from typing import List, Dict
+from dotenv import load_dotenv
+from tavily import TavilyClient
+
+from lib.agents import Agent
+from lib.messages import BaseMessage
+from lib.tooling import tool
+
+load_dotenv()
+2. Initialize Tavily Client
+Set up the Tavily client using the API key stored in environment variables:
+
+api_key = os.getenv("TAVILY_API_KEY")
+client = TavilyClient(api_key=api_key)
+3. Define the Web Search Function
+Create a function to perform web searches using the Tavily API:
+
+@tool
+def web_search(query: str, search_depth: str = "advanced") -> Dict:
+    """
+    Search the web using Tavily API
+    args:
+        query (str): Search query
+        search_depth (str): Type of search - 'basic' or 'advanced' (default: advanced)
+    """
+    api_key = os.getenv("TAVILY_API_KEY")
+    client = TavilyClient(api_key=api_key)
+    
+    # Perform the search
+    search_result = client.search(
+        query=query,
+        search_depth=search_depth,
+        include_answer=True,
+        include_raw_content=False,
+        include_images=False
+    )
+    
+    # Format the results
+    formatted_results = {
+        "answer": search_result.get("answer", ""),
+        "results": search_result.get("results", []),
+        "search_metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "query": query
+        }
+    }
+    
+    return formatted_results
+4. Create Agent Instances
+Define two agents: a simple agent and a web-aware agent. The web-aware agent will utilize the web search tool:
+
+tools = [web_search]
+
+simple_agent = Agent(
+    model_name="gpt-4o-mini",
+    instructions=("You are a helpful assistant"),
+)
+
+web_agent = Agent(
+    model_name="gpt-4o-mini",
+    instructions=(
+            "You are a web-aware assistant that can search for updated information. "
+            "For each query, you will search the web for current information using " 
+            "Tavily's AI-optimized search and provide a comprehensive answer.\n"
+            "Always cite your sources and explain any discrepancies found.\n"
+            "Be particularly attentive to dates and time-sensitive information."
+    ),
+    tools=tools
+)
+5. Run the Agents
+Invoke the agents with various queries to see how they respond:
+
+Simple Agent Example
+run1 = simple_agent.invoke(
+    query="Who won the 2025 Oscar for International Movie?", 
+)
+Web Agent Example
+run1 = web_agent.invoke(
+    query="Who won the 2025 Oscar for International Movie?", 
+)
+6. Print Messages
+Create a function to print the messages returned by the agents:
+
+def print_messages(messages: List[BaseMessage]):
+    for m in messages:
+        print(f" -> (role = {m.role}, content = {m.content}, tool_calls = {getattr(m, 'tool_calls', None)})")
+7. Analyze Results
+After running the agents, analyze the results to understand how the web-aware agent provides updated information compared to the simple agent.
+
+Summary
+This exercise demonstrates how to build a web-aware agent that can search for real-time information and compare it with existing knowledge. By utilizing the Tavily API, the agent can handle various queries and present relevant data effectively.
+
+Key Takeaways
+Integration of web search capabilities enhances the functionality of language models.
+Real-time data retrieval allows for more accurate and up-to-date responses.
+Handling different types of queries, such as news, facts, and events, is essential for comprehensive information retrieval.
+Critical analysis of information from multiple sources is essential for reliability.
+Teaching Agents to Retrieve and Update Structured Data
+Agents gain a whole new level of usefulness when they can access and modify private, structured data — like internal records, ticketing systems, or customer databases. Unlike public web data or APIs, this kind of information lives within an organization and is often stored in structured formats that require precise interaction.
+
+Structured Retrieval in Action
+If an agent is asked, “What’s the status of ticket #3042?”, it can't look this up with a web search. The answer likely lives in a relational database or CRM. Similarly, if the agent completes a task, it should update the relevant system — not just confirm success in chat, but actually write a new entry to a database. Agents that interact with structured data can perform real work, not just generate text.
+
+Understanding Databases
+Relational databases (e.g., PostgreSQL, MySQL) store data in tables with defined schemas — perfect for agent interactions that require structured queries.
+NoSQL databases (e.g., MongoDB) offer flexibility but are less commonly used for direct agent integration.
+Vector databases (e.g., Chroma, Pinecone) store embeddings for semantic search, enabling similarity-based retrieval, a key part of many RAG (Retrieval-Augmented Generation) workflows.
+For now, the focus is on relational databases and SQL.
+
+text2SQL: Translating Language into Queries
+Agents can translate natural language into SQL — a practice known as text2SQL. For example:
+
+Input: “How many users signed up this week?”
+
+Output: SELECT COUNT(*) FROM users WHERE signup_date >= '2025-07-01'
+
+This requires the agent to:
+
+Understand database schemas
+Handle filters and date ranges
+Avoid dangerous queries (e.g., accidental DELETE)
+To prevent critical errors, real-world agents must be wrapped with guardrails, including query validation and human approvals.
+
+Using Vector Databases for Semantic Search
+Some questions don’t have exact answers in a database. For example, finding documents similar in meaning to a question. Vector databases handle this by comparing embeddings and returning the most semantically relevant content — not just exact matches.
+
+RAG Doesn’t Require Vector DBs
+RAG is a pattern, not a tool. Retrieval can use vectors, SQL, keyword search, or combinations of all three. Effective agents often combine approaches — using SQL to filter and vector search to rank results semantically. This hybrid model gives agents the ability to reason over both the structure and meaning of data.
+
+Summary
+Structured data retrieval allows agents to perform meaningful tasks within private systems.
+Agents can read and write data using SQL with safeguards in place.
+Vector databases enable semantic search, but aren’t the only way to do RAG.
+Combining relational and vector data sources gives agents deeper and more flexible reasoning capabilities.
+The most effective agents are those that can integrate with structured systems, make informed decisions, and produce results that matter in real-world contexts.
+Connecting Agents with Databases
+It's useful to be able to connect your agent with tools,APIs, and even web search.But there's something closer to home that it needs tohandle just as confidently, your own data.Not every answer lives in publicly available sources.In fact, some of the most valuable information is hiddenbehind login screens inside internal systems,or starting your own company's databases.Sometimes your agent doesn't need to just retrieve data;it needs to update it. Picture this.A customer support agent asks your AI assistant,what's the current status of ticket number 3042?This isn't a web search moment.That ticket status is stored at a table inside your internal system,or maybe it's in a CRM like Salesforce.Either way, it's structured,and your agent needs to speak the language of databases to get the answer.Or consider the opposite.Your agent completes a task on an open ticket and needs to record it.That means inserting a row into a database,not just saying done in the chat.Agents that read and write from structured sources are agentsthat can actually get work done. Let's demystify it.A database is just a place to store information in a structured way.Relational databases like PostgreSQL or MySQL use tables,rows, columns, strict types.They're good for things like customer records, transactions, inventory.NoSQL databases are more flexible and document-oriented.Think MongoDB, useful,but less common for agent interactions,or even Neo4j for knowledge representation.Then we have vector databases like Chroma,Pinecone, or Weaviate.These store high-dimensional vectorsand are great for finding things that are semantically similar,meaning the words in them mean similar things.By now, you probably know that this is the basis of many rag applications.But that's a topic for another time.For now, let's stick with relational databases.When someone says, how many users signed up this week?You want your agent to translate that into an SQL query,one that gets the count of entries from the user's tablewhere the sign-up date is within the last week's date range.Converting natural language into a query the databaseunderstands like this is commonly called text2SQL.It's not one specific library,but a set of practices and techniques.Of course, it's not always that simple.The agent needs to understand the schema,that's the table names and column names,handle date ranges and filters correctly,and avoid dangerous or ambiguous queries.It must do all this safely.The last thing you want is your agent running a delete command by mistake.Imagine your agent notices John Doe has not made a purchase for quite some time.Instead of flagging this for follow-up or suggesting re-engagement strategies,it simply decides on its own to delete all records related to John Doe from the database.These kinds of mistakes can cost you customersor even get you in trouble with regulatory restrictions.In real-world scenarios, you often wrap these agents with constraints,validations, and approval flows. Now, here's a twist.Not all database queries are exact.Imagine you want your agent to retrieve a documentthat's similar in meaning to a user's question.That's not a job for SQL.That's where vector search comes in.Vector databases store embeddings of texts.When you search, they compare similarity based on cosine distance or other metrics.You're not asking for an exact match,you're asking for a nearest neighbor.It's like finding the most relevant document,even if it doesn't contain the same words.Let's debunk a myth while we're here.You don't need a vector database to do RAG.RAG is a pattern. It means retrieving context and using it to generate a better response.That context could come from a semantic search over a vector database,from a SQL query, or even from a simple keyword search.What matters is how the agent retrieves and uses the context.In practice, many agents don't choose between relational and vector databases.They combine them. Maybe you use SQL or NoSQL to filter bydate or category and then run a vector search within that filtered set,or maybe you retrieve embeddings and enrich them with structured metadata.This hybrid approach is incredibly powerful.It allows your agent to reason about both the structure of your data and its meaning.That's why learning to query databases is a core step in building effective agents.Databases unlock a different kind of intelligence.Instead of reasoning from scratch,your agent can now operate on structured knowledge.It can read, write,and reason with the kind of information real businesses run on.While vector databases are part of the future,SQL still manages much of the world's data.The best agents don't pick sides.They integrate, they query,they retrieve, and they deliver results you can trust.This demonstration showcases how to utilize the text2SQL Agent to convert natural language queries into SQL commands. The focus will be on applying the concepts learned about interacting with databases, specifically using SQLAlchemy and the tools created for querying a SQLite database. Real-world examples will be used to illustrate the process, making it easier to understand how to implement these techniques in practical scenarios.
+Steps to Follow
+Setup the Environment
+
+Ensure that the necessary libraries are installed, including SQLAlchemy and dotenv.
+Load environment variables using load_dotenv() to configure database connections.
+Create the Database Engine
+
+Use create_engine() to establish a connection to the SQLite database. In this case, the database file is sales.db.
+Define Tools for Database Interaction
+
+Create functions to list tables, get table schemas, and execute SQL queries:
+list_tables_tool(): Lists all tables in the database.
+get_table_schema_tool(table_name): Retrieves schema information for a specified table.
+execute_sql_tool(query): Executes a given SQL query and returns the results.
+List Tables and Get Schemas
+
+Call list_tables_tool() to retrieve the names of all tables in the database.
+Use get_table_schema_tool() for each table to understand its structure and columns.
+Execute a Sample SQL Query
+
+Formulate a SQL query to select data from one of the tables. For example, SELECT * FROM {table_name} LIMIT 10.
+Use execute_sql_tool(query) to run the query and fetch results.
+Set Up the SQL Agent
+
+Initialize the Agent with a model name and instructions for generating SQL queries based on user questions.
+The agent will first identify the appropriate table, retrieve its schema, generate the SQL query, and execute it.
+Invoke the Agent
+
+Call the invoke() method on the SQL agent with a natural language question, such as "How many Dell XPS 15 were sold?".
+Capture and print the messages generated during the execution to understand the agent's thought process.
+Summary of Steps
+Set up the environment and create a database engine.
+Define tools for listing tables, retrieving schemas, and executing SQL queries.
+List the tables and get their schemas.
+Execute a sample SQL query to retrieve data.
+Initialize the text2SQL Agent with instructions.
+Invoke the agent with a natural language query and print the results.
+Takeaways
+Understanding how to set up a database connection and interact with it using SQLAlchemy is crucial for database management.
+The text2SQL Agent simplifies the process of generating SQL queries from natural language, making it accessible for users without extensive SQL knowledge.
+The ability to retrieve table schemas and execute queries programmatically enhances the efficiency of data retrieval and analysis tasks.From Passive Lookup to Active Reasoning: Building Agentic RAG
+Basic Retrieval-Augmented Generation (RAG) systems follow a simple pattern: accept a query, retrieve a few documents, and generate an answer. This works for straightforward questions but falls short in more complex scenarios. Agentic RAG enhances this by giving agents the ability to reflect, retry, and refine — transforming retrieval from a static tool into an active part of the agent’s reasoning loop.
+
+Beyond One-Shot Retrieval
+Traditional RAG does not evaluate the usefulness of what it retrieves. It retrieves once and moves on. Agentic RAG introduces a feedback loop:
+
+The agent assesses whether the documents are relevant
+It identifies missing information
+It reformulates queries if needed
+It repeats retrieval and adjusts strategies before answering
+This makes the process iterative and intelligent, not one-and-done.
+
+Case Study: Zillow Offers Failure
+Search results on Zillow’s failed home-buying program, which ran from 2018 to 2021, reveal multiple contributing factors, including flawed algorithmic assumptions, unpredictable market behavior, and internal business pressures. (See resources below for more on these factors.)
+
+A simple RAG agent might summarize that Zillow’s housing algorithm failed due to unpredictable markets. An agentic RAG agent, however, would:
+
+Notice gaps in the initial retrieval
+Reflect on what’s missing (e.g., algorithmic assumptions, feedback loops)
+Reformulate the query to focus on technical flaws and business strategy
+Retrieve better data and produce a layered explanation
+The final answer becomes nuanced, grounded, and explanatory — not just a surface-level summary.
+
+Planning and Flexible Workflows
+Agentic RAG agents don’t retrieve blindly. They plan:
+
+When to retrieve (or skip retrieval entirely)
+What to retrieve first (e.g., definitions, background, evidence)
+How to integrate retrieved context across multiple steps
+Agents also inspect their results:
+
+Do they match query keywords?
+Do they answer “what” or “why” directly?
+Can each claim be backed by a specific source?
+This self-monitoring guides whether to retry, pivot tools, or adapt strategy.
+
+Reflection and Retry Strategies
+Agents can score retrieved passages or summarize what’s known vs. unknown before answering. These heuristics, often guided by prompt engineering or scoring models, help determine confidence and whether another retrieval round is necessary.
+
+Frameworks may include metrics like faithfulness and relevancy, but even without them, the agent learns to reflect on its process — a major leap from static pipelines.
+
+Summary
+Agentic RAG turns retrieval into part of the thinking loop:
+
+It reflects on what’s retrieved
+It adapts questions and strategy
+It decides whether to retry, switch tools, or proceed
+This adaptive behavior allows agents to move beyond passive summarization into active problem-solving. The core pattern becomes: retrieve, reason, retry — a loop that defines more capable, intelligent systems.
+
+Resources
+Inside AI News article on Zillow Offers(opens in a new tab)
+Wired article on Zillow pricing algorithms(opens in a new tab)
+Zillow 2021 Financial Reporhttps://insideainews.com/2021/12/13/the-500mm-debacle-at-zillow-offers-what-went-wrong-with-the-ai-models/Let's be honest, most RAG pipelines we see out there are passive.You send a query, retrieve a few documents,and hand everything over to the LLM to summarize.That's fine for a one-off question,but we really want to build something smarter.Agentic RAG is about giving your agent the initiative to reason about what it retrieved,try again if needed,and reflect before answering.This is where retrieval stops beingjust a tool and becomes part of the agent's thinking process.In basic RAG,the workflow looks like this.We get a question, retrieve some chunks,and then generate an answer.No feedback, no retry,no awareness of whether those chunks were even useful.But real questions aren't always that simple.Sometimes the retrieval misses the mark,sometimes the query wasn't specific enough,sometimes the model gets confused halfway through.What does an agent do differently?It pauses. It asks,do I have what I need?It reflects, and if necessary, it tries again.Let's ground this in a real example.Imagine a user asks,why did Zillow's home-buying algorithm fail?The simple RAG agent retrieves three documents: one mentions Zillow shutting down its iBuying program,another blames volatility in the housing market,and a third cites a public statement from Zillow's CEO about unpredictability.It summarizes these intoZillow's algorithm failed due to unpredictable housing market conditions.Not wrong, but not the full picture.Now let's look at the agentic RAG version.It starts with the same query and documents,but pauses to assess the documents don't explain what the algorithm was actually doing.There's no mention of feedback loops or howZillow's own purchases might have influenced the market.It's unclear whether the model failed due to bad data,flawed assumptions, or external market shocks.So the agent reflects,"This answer is shallow.I need more on model behavior and strategic decisions."It reformulates the query:What technical and strategic flaws led to Zillow's iBuying failure,or how did Zillow's pricing algorithm affect its own housing purchases?Now it retrieves content from financial analysts,data scientists, and investigative business reporting.It finds evidence that the model couldn't adapt tolocal market nuances that Zillow overpaid for homes based upon inflated predictions,and that it was operating in a feedback loop,where its own aggressive pricing distorted the data it relied on.The final answer: a multi-factor explanation.The algorithm's assumptions didn't hold up under real-world complexity,market volatility exposed its brittleness,and Zillow's business incentives overrode its caution mechanisms.Now, that answer isn't just a list,it's a structured explanation.That's Agentic RAG in action.One agent repeats what's visible.The other asks better questions,refines its retrieval, and builds a true explanation.What makes a RAG agent agentic?Agents can decide when to retrieve.Sometimes the input already contains enough context.No need to hit the vector store every time.Other times, retrieval should be Step 1 in a multi-step plan.First, retrieve background,then retrieve definitions, then synthesize.You're no longer writing one big prompt,you're building a reasoning path.Different from traditional RAG,Agentic RAG does not treat retrieval as a black box,it inspects the results.Did any of the retrieved passages actually contain the answer?Was anything contradictory, outdated, or unclear?It can also reformulate its own question.Maybe that original query was too vague.The agent might extract keywords, simplify phrasing,or even ask clarifying sub-questions to itself.Finally, it might decide thatno retrieved content is helpful. Instead of stopping, it pivots.It might launch a web search,or consult a different database,or trigger a summarization tool instead of a direct answer.That flexibility is what makes it agentic.The agent isn't stuck in one pipeline, it adapts.How does it know when to retry?Now here's a subtle point,we're not training a classifier here,the agent isn't perfect,but we can teach it to check,does the passage contain the entities or keywords from the question?Does it directly answer a what or why, for example?Can I support each sentence I'm about to say with a source?These aren't formal evaluation metrics,they're heuristics, but they do matter.Some developers use an LLM to score each passage with a prompt like,"Does this passage support the following answer? Rate from 1-5."Others embed reflection into the generation step.Before answering, summarize what you know and what's still unclear.Many frameworks out there provide evaluation metrics,like faithfulness and relevancy,that can be useful here, especially whendesigning more reliable or production-ready agents.Either way, the agent is learning to self-monitor. That's the big shift.Agentic RAG isn't just about tools, it's about behavior.The agent retrieves, it checks its sources,it reflects, it tries again, if needed.It might even switch tools,shift strategies, or plan multiple steps.Some agents are simple routers,others are full planners and tool users.This spectrum reflects trade-offs between cost, latency, and intelligence.But in all cases, one thing is true: the agent isn't just retrieving,it's thinking about how to retrieve.That loop, retrieve, reflect,retry, is the foundation of a new kind of intelligence system.
+
+This demonstration focuses on applying the concepts of Retrieval-Augmented Generation (RAG) using ChromaDB and OpenAI embeddings. The process will illustrate how to set up a RAG pipeline, retrieve relevant documents, augment the context, and generate answers based on the retrieved information.
+
+Step-by-Step Instructions
+1. Setting Up ChromaDB
+Initialize the ChromaDB client.
+Create a collection named "demo".
+Add a list of sentences to the collection.
+chroma_client = chromadb.Client()
+collection = chroma_client.create_collection(name="demo")
+collection.add(documents=sentence_list, ids=ids)
+2. Using OpenAI Embeddings
+Delete the previous collection to start fresh.
+Set up OpenAI embeddings using the API key.
+Create a new collection with the OpenAI embedding function.
+chroma_client.delete_collection(name="demo")
+embeddings_fn = embedding_functions.OpenAIEmbeddingFunction(api_key=os.getenv("OPENAI_API_KEY"))
+collection = chroma_client.create_collection(name="demo", embedding_function=embeddings_fn)
+collection.add(documents=sentence_list, ids=ids)
+3. Loading Documents
+Use pdfplumber to open a PDF file and extract text from each page.
+Store the extracted text and corresponding page numbers in lists.
+file_path = "GlobalEVOutlook2025.pdf"
+documents = []
+page_nums = []
+
+with pdfplumber.open(file_path) as pdf:
+    for num, page in enumerate(pdf.pages, start=1):
+        text = page.extract_text()
+        if text:
+            documents.append(text)
+            page_nums.append(str(num))
+4. Implementing the RAG Workflow
+Define a state structure to hold messages, questions, documents, and answers.
+Create functions for each step of the RAG process: retrieve, augment, and generate.
+def retrieve(state:State, resource:Resource):
+    question = state["question"]
+    collection:Collection = resource.vars.get("collection")
+    results = collection.query(query_texts=[question], n_results=3, include=['documents'])
+    retrieved_docs = results['documents'][0]
+    return {"documents": retrieved_docs}
+
+def augment(state:State):
+    question = state["question"]
+    documents = state["documents"]
+    context = "\n\n".join(documents)
+    messages = [
+        SystemMessage(content="You are an assistant for question-answering tasks."),
+        UserMessage(content=f"Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. \n# Question: \n-> {question} \n# Context: \n-> {context} \n# Answer: ")
+    ]
+    return {"messages": messages}
+
+def generate(state:State, resource:Resource):
+    llm:LLM = resource.vars.get("llm")
+    ai_message = llm.invoke(state["messages"])
+    return {"answer": ai_message.content, "messages": state["messages"] + [ai_message]}
+5. Running the Workflow
+Create a state machine and define the workflow steps.
+Initialize the state with a question and run the workflow to get the final answer.
+workflow = StateMachine(State)
+entry = EntryPoint()
+retrieve_step = Step("retrieve", retrieve)
+augment_step = Step("augment", augment)
+generate_step = Step("generate", generate)
+termination = Termination()
+
+workflow.add_steps([entry, retrieve_step, augment_step, generate_step, termination])
+workflow.connect(entry, retrieve_step)
+workflow.connect(retrieve_step, augment_step)
+workflow.connect(augment_step, generate_step)
+workflow.connect(generate_step, termination)
+
+llm = LLM(model="gpt-4o-mini", temperature=0.3)
+resource = Resource(vars={"llm": llm, "collection": collection})
+
+initial_state: State = {
+    "question": "What was the number of electric car sales and their market share in Brazil in 2024?",
+}
+
+run_object = workflow.run(initial_state, resource)
+run_object.get_final_state()["answer"]
+Summary of Steps
+ChromaDB Setup: Created a collection and added documents.
+OpenAI Integration: Used OpenAI embeddings for document representation.
+Document Loading: Extracted text from a PDF file.
+RAG Workflow: Defined and executed the retrieval, augmentation, and generation steps.
+Final Output: Retrieved an answer based on the provided question.
+Takeaways
+ChromaDB can be effectively used for managing document collections.
+OpenAI embeddings enhance the quality of document retrieval.
+The RAG process involves retrieving relevant documents, augmenting context, and generating answers.
+Implementing a state machine allows for structured workflows in AI applications.
+Exercise: Build an Agentic RAG workflow
+Lesson
+Downloads
+Cloud Resources
+In this hands-on exercise, the task is to build an Agentic RAG (Retrieval-Augmented Generation) system. This system will integrate AI agents with traditional RAG pipelines, allowing for intelligent information retrieval from various sources. By completing this exercise, skills in creating a functional RAG pipeline and developing an agent capable of making decisions based on user queries will be enhanced. This exercise is relevant for those interested in AI, data retrieval, and automation in real-world applications.
+
+Prerequisites:
+Python programming language
+Libraries: os, dotenv
+Objectives:
+By the end of this exercise, the following will be accomplished:
+
+Creation of a RAG pipeline that can be utilized by an AI agent
+Development of an agent that intelligently selects tools based on the query type
+Ability to handle various query types and combine information from multiple sources
+Steps:
+Set Up the Workspace
+
+Open the classroom workspace provided for this exercise.
+Ensure all necessary libraries are installed and accessible.
+Configure Cloud Credentials
+
+Access the cloud console linked in the classroom.
+Retrieve the OpenAI API key and set it in the environment variables using the .env file.
+Import Required Libraries
+
+Use the following code to import the necessary libraries:
+import os
+from typing import List
+from dotenv import load_dotenv
+from lib.agents import Agent
+from lib.llm import LLM
+from lib.state_machine import Run
+from lib.messages import BaseMessage
+from lib.tooling import tool
+from lib.vector_db import VectorStoreManager, CorpusLoaderService
+from lib.rag import RAG
+load_dotenv()
+Initialize the Vector Database
+
+Create an instance of VectorStoreManager using the OpenAI API key:
+db = VectorStoreManager(OPENAI_API_KEY)
+Load Data into the Vector Database
+
+Use CorpusLoaderService to load data from PDF files into the vector database. Specify the file paths for the games and electric vehicles data:
+loader_service = CorpusLoaderService(db)
+Set Up the RAG Model
+
+Initialize the RAG model with the loaded data:
+rag_llm = LLM(model="gpt-4o-mini", temperature=0.3)
+games_market_rag = RAG(llm=rag_llm, vector_store=loader_service.load_pdf())
+electric_vehicles_rag = RAG(llm=rag_llm, vector_store=loader_service.load_pdf())
+Define Tools for Information Retrieval
+
+Create functions that will serve as tools for retrieving information from the vector database:
+@tool
+def search_global_ev_collection(query):
+    return
+
+@tool
+def search_games_market_report_collection(query):
+    return
+Create the Agent
+
+Define the agent that will utilize the tools created:
+agentic_rag = Agent(model_name="gpt-4o-mini", tools=[], instructions="")
+Run Queries through the Agent
+
+Execute queries to test the agent's functionality:
+run_1 = agentic_rag.invoke(query="Who won the 2025 Oscar for International Movie?", session_id="oscar")
+run_2 = agentic_rag.invoke(query="Which two countries accounted for most of the electric car exports from the Asia Pacific region (excluding China) in 2024?", session_id="electric_car")
+run_3 = agentic_rag.invoke(query="Why is generative AI seen more as an accelerator than a replacement in game development?", session_id="games")
+Print the Results
+
+Use a function to display the messages returned from the agent:
+def print_messages(messages: List[BaseMessage]):
+    for m in messages: 
+        print(f" -> (role = {m.role}, content = {m.content}, tool_calls = {getattr(m, 'tool_calls', None)})")
+Takeaways
+Understanding of how to integrate AI agents with RAG systems
+Ability to create tools for data retrieval from various sources
+Skills in handling diverse queries and combining information effectivelySolution: Build an Agentic RAG workflow
+Lesson
+Downloads
+Cloud Resources
+An Agentic RAG system integrates AI agents with traditional RAG pipelines, allowing for dynamic decision-making regarding information retrieval. This system can intelligently handle different types of queries and combine data from multiple sources, enhancing the overall user experience.
+
+This solution walkthrough provides a comprehensive overview of how to build an Agentic RAG (Retrieval-Augmented Generation) system. The goal is to create an intelligent agent capable of retrieving and combining information from various sources based on user queries.Solution Overview
+The solution involves several key components:
+
+RAG Pipeline: A structured approach to retrieve and generate information.
+Agent Creation: An intelligent agent that decides which tool to use based on the query.
+Query Handling: The ability to manage various query types effectively.
+Information Combination: Merging data from multiple sources when necessary.
+Step-by-Step Instructions
+1. Setup Environment
+Begin by importing the necessary libraries and loading environment variables:
+
+import os
+from typing import List
+from dotenv import load_dotenv
+
+from lib.agents import Agent
+from lib.llm import LLM
+from lib.state_machine import Run
+from lib.messages import BaseMessage
+from lib.tooling import tool
+from lib.vector_db import VectorStoreManager, CorpusLoaderService
+from lib.rag import RAG
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+2. Load Data into Vector Database
+Create a vector store manager and load data from PDF files into the RAG system:
+
+db = VectorStoreManager(OPENAI_API_KEY)
+loader_service = CorpusLoaderService(db)
+
+rag_llm = LLM(
+    model="gpt-4o-mini",
+    temperature=0.3,
+)
+
+games_market_rag = RAG(
+    llm=rag_llm,
+    vector_store=loader_service.load_pdf(
+        store_name="games_market",
+        pdf_path="TheGamingIndustry2024.pdf",
+    )
+)
+
+electric_vehicles_rag = RAG(
+    llm=rag_llm,
+    vector_store=loader_service.load_pdf(
+        store_name="electric_vehicles",
+        pdf_path="GlobalEVOutlook2025.pdf",
+    )
+)
+3. Define Tools for Information Retrieval
+Create functions that will serve as tools for searching the vector database:
+
+@tool
+def search_global_ev_collection(query):
+    result:Run = electric_vehicles_rag.invoke(query)
+    return result.get_final_state()["answer"]
+
+@tool
+def search_games_market_report_collection(query):
+    result:Run = games_market_rag.invoke(query)
+    return result.get_final_state()["answer"]
+4. Create the Agent
+Define the agent that will utilize the tools to respond to queries:
+
+agentic_rag = Agent(
+    model_name="gpt-4o-mini",
+    tools=[search_global_ev_collection, search_games_market_report_collection],
+    instructions=(
+        "You are an Agentic RAG assistant that can intelligently decide which tools to use "
+        "to answer user questions. Reason about the response, change the query and call the tool again if needed "
+        "in order to get better results. Always explain your reasoning for tool selection and provide comprehensive answers."
+    )
+)
+5. Invoke the Agent with Queries
+Run the agent with different queries to see how it retrieves and combines information:
+
+run_1 = agentic_rag.invoke(
+    query="Who won the 2025 Oscar for International Movie?", 
+    session_id="oscar",
+)
+
+run_2 = agentic_rag.invoke(
+    query= (
+        "Which two countries accounted for most of the electric car exports from " 
+        "the Asia Pacific region (excluding China) in 2024?"
+    ),
+    session_id="electric_car",
+)
+
+run_3 = agentic_rag.invoke(
+    query= (
+        "How games are revolutionizing education?"
+    ),
+    session_id="games",
+)
+Summary
+The Agentic RAG system effectively combines AI capabilities with traditional information retrieval methods. By following the steps outlined, an intelligent agent can be created to handle various queries, retrieve relevant information from multiple sources, and provide comprehensive answers.
+
+Key Takeaways
+An Agentic RAG system enhances information retrieval by intelligently selecting tools based on user queries.
+The ability to handle different types of queries and combine information from multiple sources improves the accuracy and relevance of responses.
+
+
+Let's imagine you're chatting with an AI agent,and it remembers your name,your preferences, and even that bug you reported last month.That's not magic, that's long term memory.Unlike short term memory,which only works inside the current conversation or thread.Long term memory allows agents to remember things across sessions.It's the difference between chatting witha stranger and building a relationship over time.Stateless agents forget everything the moment the conversation ends.That's fine for simple tasks.But what if your agent is a long term assistant,a tutor, a game character, a support bot?They need memory, real memory.With long term memory,agents can personalize their answers based on what they know about you.They can avoid repeating the same questions every time,and they can get better with experience,like remembering which solution worked last time.It makes the agent feel alive,or at least more intelligent.Just like humans, agents can remember different kinds of things.We normally group those into three types.Semantic, episodic, and procedural. Let's break it down.Semantic memory is the agent's factual memory,things it learns through interaction.For example, you tell the agent,your favorite game is Zelda Breath of the Wild.It stores that fact and recalls it in the future.Another example, the agent remembers that your team uses Trello, not Jira.That's not something it got from a web search, I learned it from you.These are stored in structured forms like a profile or a knowledge collection,which can be retrieved by similarity or context.Episodic memory is the memory of past events.For instance, the last time you asked how to connect to a database,and the agent walked you through the steps,and you said it worked.Episodic memory is often used to build few shot examples.Summaries of previous interactions that can be recalled when a similar situation arises.Think of it like, I've helped you with this before.Let me use that experience.Procedural memory is the agent's memory of how to act.It's not about facts or past chats, it's about behavior.If the user frequently asks for formal emails,the agent adapts its tone over time.It might update its internal prompt or rules to reflect that.This is what enables an agent to evolve toimprove how it helps and not just what it knows.When a user says something meaningful, like their birthday,a team they manage or a preference,that information can be captured and saved.Storage might look like a vector database like ChromaDB or a structured SQL database,or even a simple no SQL document store.Then in a future session,the agent determines what memories to retrieve and for whom.That's because memories can be scoped in different ways.They can be personalized and private to a specific email address,meaning they are user scoped.Or when they are shared across members of a workspace,we call that team scoped.But if there are universal patterns learned across all users,they are global scoped.When the agent identifies the current context,such as a user ID, a team,or an application route,it uses that to determine which memory collections to query.Retrieval can then be triggered by semantic similarity,tags, time, context, you name it.Once memories are retrieved,the agent can inject them into the system prompt,or as a background context,or even as tool parameters.One thing to highlight. Designing memory is not just about what we can store.It's about what we should store.Privacy and relevance are both important factors here.Don't log every line of dialogue.Prioritize what's useful.Set TTLs or time to live settings for memories that may become outdated.Use name spaces to avoid memory collisions or leaks between users,teams or use cases,and fine tune what needs to be recalled globally versus what stays private.Long term memory gives your agent continuity,but you're still in charge of when it should evolve,and when information should be forgotten.Ask yourself, what should be remembered?How long should it persist,and who can access it?You might be thinking, is this just another form of RAG?That's a great question. The difference is in how the information is acquired.RAG pulls info from static documents written by others.On the other hand, long term memory is built from interaction,facts, experiences, behaviors that emerged during the conversation.Sometimes semantic memory looks like RAG,but it's built differently, and it evolves.Finally, bear in mind that long term memory isn't just about adding context,it's about maintaining useful context.
+User-scoped: Tied to a specific identity (e.g., email)
+
+Team-scoped: Shared across a group
+
+Global-scoped: Learned patterns across users
+
+Triggers for retrieval might include semantic similarity, tags, time, or session context. Retrieved memories can be injected into system prompts, background context, or passed as tool parameters.
+
+Challenges and Best Practices
+Good memory design balances usefulness with responsibility. Key practices include:
+
+Selectivity: Only store what’s relevant; not every message needs to be remembered.
+
+Expiry: Use time-to-live (TTL) settings to automatically retire outdated information.
+
+Separation: Keep memory namespaces clear to prevent overlap between users or teams.
+
+Balance: Consider privacy and performance when deciding what to store and how it’s accessed.
+
+Summary
+Long-term memory differs from RAG in that it’s built through interaction, not static documents. It evolves over time, adapting to the user’s needs and behavior. While some semantic memory resembles RAG-style retrieval, its origin and function are fundamentally different.
+
+With long-term memory, agents don’t just recall facts — they maintain continuity, improve with time, and deliver deeply personalized experiences.
+Hello. In this demo,our agent will recall information from previous sessions.Let's start with the setup,and here you can see that we're playing with a vector DB.We have our abstraction here and we're creating this store called test.You can see here that we have two cells that usethis vector store and are adding information.The first one is adding just one document andthe second one is adding this corpus with two documents.The difference between these two cells is that the firstone we have this metadata for user_id 1,and here we have two documents for user_id 2.We're trying to use this vector database to emulate this long-term memory,and you can see here a passing session ID and information about timestamp.Let me run the cells.If I create this vector DB passing game preference,and if we pass this filter here for user_id,we can have information just about the first user_id.I prefer Nintendo games.But if I change these two user_id 2,you see that I prefer Sony games.This is important to create a long-term memory.The use of abstractions we'll be creating here is a fragment of memory,the search result, a timestamp filter,if we want to use it and the long-term memory.The memory fragment is content,owner, namespace, and timestamp.This information is important for the filters.We have the memory search result with fragments and metadata.The timestamp filter, so we can have greater than value and lower than value.But if you don't pass anything,it's not a problem at all,and we have our long-term memory.You can see that you're using the vector_store abstractionand you can see here that we're usingthe functionalities of the vector_store abstraction,like get_namespace, register and this register is just the.add method from thevector_store passing the document with content andmetadata that we receive from this memory fragment, and we can search.The search, we also have this where dictionary that we can pass namespace and owner.If we have a timestamp filter and we can use at the end logic here.Great, and then we return the memory search result.Let me instantiate the long-term memory,and to simplify things,we create these four timestamps here.The three memory that we create is from past seven days,from past 10 days,and from past 14 days.I can now register all these memory fragments, and then I can search.What are my lighting preferences?You can see here that I prefer dark mode.Now I can search using timestamp filter.If I don't pass anything,it brings on the three documents.As you can see here,I drove an electric car yesterday.I prefer a dark mode,and I have an Nintendo Switch.But if I change this,the idea is instead of three documents,I'd like to have only two because as you can see here,we have 14, 10, and 7 days.If I pass greater than I'd like to extract only these two.Let me check. Great. Now I have only two.If I want to have only the past seven days,I prefer dark mode.I can change here to 10 days.Great. I prefer dark mode.If I want the 10 days,I can pass the greater and lower than,and you can see I have an Nintendo Switch.Now we can use all these useful methods and abstractions on the agent.First thing is build the memory restriction tool.This is important so the agent can have access to registering memory.You can see here, we have the tool abstraction.The second one is to search.It's the same thing we did before,but we create this search here and we pass as a tool.Great. Now let's create the long-term memory,and here in the agent in the tools list,we create the abstractions.As the result of this function is a tool,we need to pass all the information,the long-term memory, the owner, and the namespace.Let me run this cell, and then I'll invoke it with this query.I prefer dark mode and I pass session_id 1.If we see the final state,those are the messages and I can see the last one.I've noted that you prefer dark mode.If there's anything else you'd like to share.Now, I'll use session_2 to ask what are the lighting preferences.Great. When you see the result, you can see here,your lighting preference is for dark mode.Great. It works.We have two different sessions,session_2 and session_1 and the agent was able to remember information across sessions.
+
+Steps to Implement Long-Term Memory
+Setup Environment
+
+Import necessary libraries and load environment variables.
+Initialize the vector database manager with the OpenAI API key.
+import os
+from dotenv import load_dotenv
+from lib.vector_db import VectorStoreManager
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+db = VectorStoreManager(OPENAI_API_KEY)
+Create Vector Store
+
+Create or retrieve a vector store for memory storage.
+vector_store = db.get_or_create_store("test")
+Add Documents to Vector Store
+
+Add individual documents and a corpus of documents to the vector store, each with metadata.
+vector_store.add(Document(content="I prefer Nintendo games", metadata={"user_id": "1", "session_id": "games"}))
+vector_store.add(Corpus([Document(content="I prefer Sony games", metadata={"user_id": "2", "session_id": "games"}), Document(content="I have an Electric Car", metadata={"user_id": "2", "session_id": "vehicles"})]))
+Define Memory Structures
+
+Create data classes for memory fragments, search results, and filters to manage memory effectively.
+@dataclass
+class MemoryFragment:
+    content: str
+    owner: str
+    namespace: str = "default"
+    timestamp: int = field(default_factory=lambda: int(datetime.now().timestamp()))
+
+@dataclass
+class MemorySearchResult:
+    fragments: List[MemoryFragment]
+    metadata: Dict
+
+@dataclass
+class TimestampFilter:
+    greater_than_value: int = None
+    lower_than_value: int = None
+Implement Long-Term Memory Class
+
+Create a class to manage memory storage and retrieval, including methods for registering and searching memories.
+class LongTermMemory:
+    def __init__(self, db: VectorStoreManager):
+        self.vector_store = db.create_store("long_term_memory", force=True)
+
+    def register(self, memory_fragment: MemoryFragment, metadata: Optional[Dict[str, str]] = None):
+        # Implementation for registering memory
+        ...
+
+    def search(self, query_text: str, owner: str, limit: int = 3, timestamp_filter: Optional[TimestampFilter] = None, namespace: Optional[str] = "default") -> MemorySearchResult:
+        # Implementation for searching memory
+        ...
+Register Memories
+
+Create instances of MemoryFragment and register them using the LongTermMemory class.
+ltm = LongTermMemory(db)
+memories = [MemoryFragment(content="I prefer dark mode", owner="Henrique"), MemoryFragment(content="I have a Nintendo Switch", owner="Henrique")]
+for m in memories:
+    ltm.register(m)
+Search for Memories
+
+Use the search method to retrieve memories based on user queries and filters.
+result = ltm.search(query_text="What are my lighting preferences?", owner="Henrique", limit=1)
+Build Tools for Agents
+
+Create tools for agents to register and search memories, allowing for interaction with the long-term memory system.
+def build_memory_registration_tool(ltm: LongTermMemory, owner: str, namespace: str):
+    # Implementation for memory registration tool
+    ...
+
+def build_memory_search_tool(ltm: LongTermMemory, owner: str, namespace: str):
+    # Implementation for memory search tool
+    ...
+Create and Invoke Agent
+
+Instantiate an agent with the memory tools and invoke it with user queries to demonstrate memory usage.
+agent = Agent(model_name="gpt-4o-mini", tools=[build_memory_registration_tool(ltm, "Henrique", "conversation"), build_memory_search_tool(ltm, "Henrique", "conversation")])
+result = agent.invoke(query="I prefer dark mode", session_id="session_1")
+Summary of Steps
+Set up the environment and initialize the vector store.
+Define memory structures and implement the long-term memory management class.
+Register and search for memories using the defined methods.
+Create tools for agents to interact with the memory system.
+Invoke the agent to demonstrate memory registration and retrieval.
+Takeaways
+Long-term memory enhances user interactions by allowing agents to remember preferences and facts across sessions.
+The use of vector databases facilitates efficient storage and retrieval of memory fragments.
+Implementing memory tools enables agents to dynamically register and search for user memories, improving personalization in responses.
+Creating an abstraction for long-term memory management simplifies the integration of memory capabilities into agents.
+
+
+You've built your agent, it can call tools,track its state, remember things across sessions,even route to different retrieval pipelines.But now comes the big question.Is it any good? Just because an agent runs doesn't mean it's doing the right thing,or doing it well, or even doing it safely. How do you know?Evaluation. That's what we'll explore.Because without evaluation, you're working in the dark.Imagine launching an agent that automates customer support.One day, it works great, the next,it starts calling the wrong tools,escalating simple tasks and burning through tokens.No alerts, no feedback, just failure.For marketing and sales, imagine this.The agent identifies that a customer named Jane Doe hasn't been buying recently.Instead of suggesting a re-engagement strategy,or alerting a sales rep,it decides to delete all of Jane Doe's records from the database.That's a misunderstanding with real consequences.Evaluation isn't just about scoring, it's about visibility,about understanding how your agent behaves,and how to make it better.You don't need perfection.You do need consistent, measurable, improvable performance.What do we evaluate?Let's look at four key areas.Task completion is all about outcomes.Did the agent actually do what it was supposed to do?How many steps did it take?Did it need human help?Quality control checks if the output follow the rules.Was the format correct?Did the agent respect the prompt instructions?Was the context actually used?Tool interaction looks inside the agent.Did it choose the right tool?Were the arguments valid?Did the tool return something useful?System metrics tell us how the agent uses resources.Our tool calls fast?How many tokens is it burning?How often does it fail silently due to context window overflow?These categories give you a map of what to measure.But how do you measure it? There isn't just one way to evaluate.It really depends on what you care about and how deep you want to go.Final response evaluation is the black box approach.You gave the agent a task,you look at the final output. Did it succeed?This is great for end-to-end testing.You don't care how it got there, just that it worked.You can even use LLM-as-judge to evaluate the output automatically.For example, did this response fully and accurately complete the task.The downside, it tells you what happened but not why.Single-step evaluation is where we zoom in.Instead of evaluating the whole run,we evaluate a single decision.Did the agent pick the right tool?Did it craft a valid input?This is faster to run and easier to debug.You can set up test cases and check if the step output matches the expected tool call.But it doesn't tell you whether the full task will succeed,just that one moment in time.Trajectory evaluation is the most detailed.You trace the entire path the agent took,which tools it called, in what order,with what arguments, and what it did with the results.It's like a flight recorder for your agent.Perfect for complex workflows where the process matters as much as the result.You can compare the actual trajectory to an expected one,or even ask an LLM to judge whether the path was reasonable.It's more work, but it gives you real insight.No matter which method you choose,final output, single step,or the whole trajectory,you'll always need a few essential pieces. Start with inputs.That's the user prompt, the list of tools the agent can use,and maybe some extra context like memory or instructions.Then come the outputs.This could be the agent's final response,or the tool calls it generated along the way.You'll also need reference data,a ground truth answer,a correct sequence of tool calls,or an expected result to compare against.Finally, you need an evaluator.That might be an LLM-as-judge,a set of rules or some heuristics to determine success or failure.Sometimes you'll have a perfect reference to check against.Other times, you'll rely on pattern matching or common sense evaluation.The key is building a repeatable process,so you're not guessing if your agent improved. You know.Evaluating agents is challenging due totheir variability and the subjective nature of many tasks,making it difficult to judge success,and requiring careful consideration of cost,and the risk of overfitting evaluation metrics.This complexity necessitates movingbeyond simple correctness checks to assess performance,efficiency, and user satisfaction.Except that no metric or strategy is perfect,you're not aiming for a silver bullet,you're building a compass,one that points you consistently toward better agents.Well, once you can evaluate agents,you can start improving them.You might notice that your agent struggles with tool selection.That could point to unclear tool descriptions,or poor prompt design.Maybe it uses too many tokens,time to shorten memory context, or prun results.Maybe it gets the job done,but it takes 10 steps when it could take 3.That's a planning opportunity.Good evaluation reveals opportunities.Great evaluation powers iteration.
+
+Evaluating Agents: How to Measure What Matters
+Building an agent that can call tools, track state, use memory, and route queries is a major accomplishment — but it’s only half the story. The real question is: does it work well, safely, and efficiently? Agent evaluation provides the feedback loop necessary to understand, improve, and trust your system.
+
+Why Evaluation Is Essential
+Without evaluation, agent behavior can drift unnoticed. An agent might start making incorrect tool calls, wasting tokens, or even taking harmful actions. For example, rather than alerting a sales rep about a disengaged customer, it might delete their records — a critical mistake. Evaluation ensures visibility into performance and safety, enabling iteration and progress.
+
+Four Dimensions of Evaluation
+Effective evaluation looks across multiple dimensions:
+
+Task Completion: Did the agent achieve its goal? How many steps did it take? Was human intervention needed?
+Quality Control: Was the output in the correct format? Did it follow prompt instructions and use the provided context?
+Tool Interaction: Did the agent choose appropriate tools and use valid arguments?
+System Metrics: How efficient was the run in terms of time, token usage, and failure rates?
+Together, these give a comprehensive view of how the agent performs.
+
+Three Evaluation Strategies
+Final Response Evaluation: Judges the end result only. This black-box method is great for end-to-end testing and can use an LLM-as-judge to assess success. However, it lacks insight into how the result was produced.
+Single-Step Evaluation: Focuses on one decision at a time, like selecting a tool or formatting a query. It’s fast and ideal for debugging, but doesn’t capture the agent’s overall effectiveness.
+Trajectory Evaluation: Reviews the full execution path — tool calls, order, arguments, and results. This offers the richest insight, especially for complex workflows, but requires more setup and analysis.
+What You Need for Evaluation
+No matter the method, four core components are required:
+
+Inputs: User queries, tool options, memory, and instructions
+Outputs: Agent responses and tool call sequences
+Reference Data: Ground truth answers or expected actions
+Evaluators: Rules, heuristics, or models (like an LLM) to assess success
+Sometimes exact reference data exists. Other times, evaluations rely on approximations and best-guess heuristics. The key is consistency — enabling meaningful comparisons over time.
+
+The Challenge of Evaluation
+Agents are dynamic and their tasks can be subjective. There’s no universal metric for success, and overfitting to narrow criteria is a risk. Evaluation needs to go beyond correctness, covering efficiency, robustness, and user experience.
+
+Summary
+Agent evaluation isn’t about finding a perfect score — it’s about building a reliable compass. Whether judging outcomes, individual steps, or full trajectories, thoughtful evaluation reveals where to improve:
+
+Unclear tool descriptions?
+Inefficient planning?
+Bloated memory use?
+Great evaluation doesn’t just monitor performance. It drives better design.
+Hello. In this demo,we explore a simple way to evaluate agents.Here you can see we have this package evaluation,and we have many metrics,like for task completion, quality control,tool interactions, system metrics,and we have our evaluation result.We'll also use this task case and the agent evaluator.Great. Let's go back to the notebook and run these setup cells.Here you can see that we have these get games toolbut you can use this section to create any tool of your preference.Let me develop the agent.I'm passing these get games here and I can provide a task case.For example, find the best games in the dataset.So this is the description.The user query for this task case,what's the best game in the dataset?So I'm expecting it to use the get games tool andthe reference answer is the legend of Zelda with score 98.Let me run it. You can see that we have a report with the black box,the single stop, and the trajectory.The three ways to evaluate this agent.For each task case but we have only one.Let's see what it does.We started with the workflow.As you can see here,this is the workflow,what it is doing is here.I start the timestamp,and we have this run object that is the agent.invoke.That's why we see here this workflow running.Because it meets all the information in the task case,the overall score for the black box is 100%because the agent response successfully identifies the best game in the dataset.It evaluate the input and output based on a reference.The single step was based on the tool,it used the correct tools.Here the trajectory, we were expecting four steps and it took four steps.This is the total tokens,the execution time, and the estimated cost.You can of course go back to this evaluation here and create your own metrics.To evaluate your agent.Here you can see that we have judge evaluation and we create an LLM as a judge.Feel free to explore this and create great evaluations for your agent.
+
+Steps to Evaluate Your Agent
+Setup the Environment
+
+Import necessary libraries and load environment variables.
+Ensure that the required libraries for agent evaluation are available.
+import time
+from typing import List, Dict
+from dotenv import load_dotenv
+
+from lib.agents import Agent, AgentState
+from lib.state_machine import Run
+from lib.messages import AIMessage
+from lib.tooling import tool
+from lib.evaluation import TestCase, AgentEvaluator, EvaluationResult
+
+load_dotenv()
+Create Custom Tools
+
+Design tools that showcase different aspects of agent behavior.
+Consider tools that require multi-step reasoning, handle various data types, or interact with external services.
+@tool
+def get_games(num_games: int = 1, top: bool = True) -> List[Dict]:
+    # Function implementation
+Develop Your Agent
+
+Instantiate the agent with a model name and the tools created.
+Provide clear instructions for the agent's functionality.
+agent = Agent(
+    model_name="gpt-4o-mini",
+    tools=[get_games],
+    instructions="You can bring insights about a game dataset based on users questions",
+)
+Design Test Cases
+
+Create test cases that define user queries and expected outcomes.
+Include a description, expected tools, and a reference answer.
+evaluator = AgentEvaluator()
+
+test_cases = [
+    TestCase(
+        id="game_query_1",
+        description="Find the best game in the dataset",
+        user_query="What's the best game in the dataset?",
+        expected_tools=["get_games"],
+        reference_answer="The Legend of Zelda: Breath of the Wild with score 98",
+        max_steps=4
+    ),
+]
+Run Evaluation Experiments
+
+Iterate through each test case and evaluate the agent's performance.
+Capture the execution time and final state of the agent.
+for test_case in test_cases:
+    # Evaluation logic
+Evaluate Using Different Methods
+
+Perform evaluations using black box, single step, and trajectory methods.
+Collect scores, feedback, and other relevant metrics for each evaluation method.
+# Black Box Evaluation
+# Single Step Evaluation
+# Trajectory Evaluation
+Reflection and Iteration
+
+Analyze the evaluation results to identify patterns, weaknesses, and strengths.
+Use insights gained to modify tools, test cases, or agent configurations for further improvement.
+1. Identify Patterns
+2. Spot Weaknesses
+3. Recognize Strengths
+4. Iterate
+Summary
+The demonstration provided a structured approach to evaluating an agent's performance. Key steps included setting up the environment, creating custom tools, developing the agent, designing test cases, running evaluations, and reflecting on the results. Each evaluation method offered unique insights into the agent's capabilities and areas for improvement.
+
+Takeaways
+Understanding different evaluation approaches enhances the ability to assess agent performance effectively.
+Custom tools can significantly impact the evaluation process by simulating real-world scenarios.
+Iterative reflection on evaluation results is crucial for continuous improvement of the agent's design and functionality.
+Evaluation should include assessing final responses, single steps, and overall trajectories to gain comprehensive insights.
+
+
+Project Scenario
+You’ve been hired as an AI Engineer at a gaming analytics company developing an assistant called UdaPlay. Executives, analysts, and gamers want to ask natural language questions like:
+•	“Who developed FIFA 21?”
+•	“When was God of War Ragnarok released?”
+•	“What platform was Pokémon Red launched on?”
+•	“What is Rockstar Games working on right now?”
+Your agent should:
+1.	Attempt to answer the question from internal knowledge (about a pre-loaded list of companies and games)
+2.	If the information is not found or confidence is low, search the web
+3.	Parse and persist the information in long-term memory
+4.	Generate a clean, structured answer/report
+Project Specifications
+In this project, you will build an AI Research Agent called UdaPlay designed to answer questions about video games. The agent will be capable of:
+1.	Answering user questions about games, including:
+•	Game titles and their details
+•	Release dates and platforms
+•	Game descriptions and genres
+•	Publisher information
+2.	Using a two-tier information retrieval system:
+•	Primary: RAG (Retrieval Augmented Generation) over a local dataset of games
+•	Secondary: Web search using the Tavily API when internal knowledge is insufficient
+3.	Implementing a robust evaluation system:
+•	Assessing the quality of retrieved information
+•	Determining when to fall back to web search
+•	Providing confidence levels in answers
+4.	Generating clear, well-structured responses that:
+•	Cite information sources
+•	Combine information from multiple sources when needed
+•	Present information in a natural, readable format
+
+Environment Setup
+For this project you'll use the following libraries:
+chromadb>=1.0.4
+openai>=1.73.0
+pydantic>=2.11.3
+python-dotenv>=1.1.0
+tavily-python>=0.5.4
+These are installed in the included workspace.
+Workspace Instructions
+Sign up for a free Tavily account, which will allow you to search the web and get back N pages and textual content for the pages, for free (first 1000 requests are free)
+After signing up, you can get your API key here: https://app.tavily.com/home(opens in a new tab)(opens in a new tab)
+Create a file named .env in the same directory as the project notebook, and a entries for both OPENAI_API_KEY and TAVILY_API_KEY
+e.g.
+
+OPENAI_API_KEY="sk-**********"
+TAVILY_API_KEY="tvly-********"
+Use python-dotenv to load the .env file and ensure the appropriate env variables are set:
+
+# Load in the OpenAI key and Tavily key.
+# In the project folder, create a file named '.env'
+# ensure your .env file contains keys named OPENAI_API_KEY="your key" and TAVILY_API_KEY="your key"
+from dotenv import load_dotenv
+import os 
+
+load_dotenv('config.env')
+assert os.getenv('OPENAI_API_KEY') is not None
+assert os.getenv('TAVILY_API_KEY') is not None
+
+Part 1 - RAG Pipeline
+•	Set up a ChromaDB vector database
+•	Process and embed game data from JSON files
+•	Implement semantic search functionality
+•	Create a reusable vector store manager
+Part 2 - Agent Implementation
+•	Build an agent with three core tools:
+•	retrieve_game: Search the vector database
+•	evaluate_retrieval: Assess answer quality
+•	game_web_search: Fall back to web search
+•	Implement a state machine for agent workflow
+•	Create a reporting system for clear output
+Submission Instructions
+You will be presented with the opportunity to submit your workspace solution during the final Submit Project step.
+
+
+
+
+
+Rubric
+Use this project rubric to understand and assess the project criteria.
+RAG
+Criteria	Submission Requirements
+Prepare and process a local dataset of video game information for use in a vector database and RAG pipeline	•	The submission includes the notebook (Udaplay_01_solution_project.ipynb) that loads, processes, and formats the provided game JSON files.
+•	The processed data is added to a persistent vector database (e.g., ChromaDB) with appropriate embeddings.
+•	The notebook or script demonstrates that the vector database can be queried for semantic search.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Agent Development
+Criteria	Submission Requirements
+Implement agent tools for internal retrieval, evaluation, and web search fallback.	•	The submission includes at least three tools:
+•	A tool to retrieve game information from the vector database.
+•	A tool to evaluate the quality of retrieved results.
+•	A tool to perform web search using an API (e.g., Tavily).
+•	Each tool is implemented as a function/class and is integrated into the agent workflow.
+•	The agent: 
+•	first attempts to answer using internal knowledge,
+•	evaluates the result,
+•	and falls back to web search if needed.
+Build a stateful agent that manages conversation and tool usage.	•	The agent is implemented as a class or function that maintains conversation state.
+•	The agent can handle multiple queries in a session, remembering previous context.
+•	The agent’s workflow is implemented as a state machine or similar abstraction.
+•	The agent produces clear, structured, and well-cited answers.
+Demonstrate and report on the agent’s performance with example queries.	•	The submission includes the notebook (Udaplay_02_solution_project.ipynb) that runs the agent on at least three example queries (e.g., about game release dates, platforms, or publishers).
+•	The output for each query includes the agent’s reasoning, tool usage, and final answer.
+•	The report includes at least the response with citation, if any
+
+Suggestions to Make Your Project Stand Out
+1.	Personalize the Dataset: Add extra games, companies, or platforms to the dataset and demonstrate richer queries.
+
+2.	Advanced Memory: Implement persistent long-term memory so the agent “learns” from web searches.
+Structured Output: Return answers in both natural language and structured JSON for easy integration.
+
+3.	Visualization: Create a dashboard or visualization of the agent’s retrieval process or knowledge base.
+
+4.	Custom Tools: Add extra tools, such as sentiment analysis of game reviews or trending games detection.
+
+
+
+

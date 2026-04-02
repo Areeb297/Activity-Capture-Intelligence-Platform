@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \":*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "mcp__neon__list_projects",
+      "mcp__neon__get_database_tables",
+      "mcp__neon__run_sql",
+      "mcp__neon__run_sql_transaction",
+      "mcp__neon__prepare_database_migration",
+      "Bash(psql:*)",
+      "Bash(python -c \"import psycopg2; print\\(''psycopg2 ok''\\)\")",
+      "Bash(python -c \"import asyncpg; print\\(''asyncpg ok''\\)\")",
+      "Read(//c/Users/areeb/.claude/plugins/marketplaces/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(python scripts/search.py \"data analytics dashboard enterprise SaaS workforce insights\" --design-system -p \"Activity Analyser\" -f markdown)",
+      "Bash(find C:/Users/areeb/.claude/plugins/marketplaces/ui-ux-pro-max-skill/cli -name search*)",
+      "Bash(python scripts/search.py \"data analytics dashboard performance\" --stack nextjs)",
+      "Bash(python:*)",
+      "Bash(grep -E \"\\\\.\\(sql|py\\)$\")",
+      "Bash(grep -r \"CREATE TABLE\\\\|schema\\\\|migration\" '/c/Users/areeb/OneDrive/Documents/Activity Analyser System/backend' --include=*.py)",
+      "Bash(\"C:/Users/areeb/OneDrive/Documents/Activity Analyser System/backend/routers/history.py\")",
+      "Bash(ls:*)",
+      "Bash(\"C:/Users/areeb/OneDrive/Documents/Activity Analyser System/frontend/src/app/history/page.tsx\")",
+      "Bash(npm run:*)",
+      "Bash(\"C:/Users/areeb/OneDrive/Documents/Activity Analyser System/frontend/.env.local\")"
+    ]
+  }
+}
