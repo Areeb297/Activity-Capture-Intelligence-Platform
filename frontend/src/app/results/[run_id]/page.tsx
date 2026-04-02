@@ -183,7 +183,7 @@ export default function ResultsPage() {
       </div>
 
       {/* Department folder tree */}
-      <DeptTree results={results} />
+      {results && <DeptTree results={results} />}
 
       {/* KPI row */}
       <KPICards results={filteredResults} filteredDept={dept} />
