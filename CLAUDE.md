@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Current date:** 2026-04-02. Always use WebSearch to verify the latest versions of packages (npm, pip) and check for security advisories before pinning any dependency version. Never rely on training-data version knowledge — it will be stale.
+
 > **Detailed docs:**
 > - [`docs/architecture.md`](docs/architecture.md) — system design, agent details, folder structure, DB schema
 > - [`scope.md`](scope.md) — full PRD, API contracts, UI spec, implementation status
