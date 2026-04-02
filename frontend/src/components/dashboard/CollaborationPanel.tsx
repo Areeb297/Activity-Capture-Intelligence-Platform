@@ -77,9 +77,7 @@ export default function CollaborationPanel({ opportunities }: Props) {
                     {config.label}
                   </span>
                 </div>
-                <Badge variant={impactBadge[opp.impact] ?? "default"}>
-                  {opp.impact}
-                </Badge>
+                <Badge variant={impactBadge[opp.impact] ?? "default"} label={opp.impact} />
               </div>
 
               {/* Department pair */}
